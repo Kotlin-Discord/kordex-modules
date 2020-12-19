@@ -116,3 +116,7 @@ fabric.properties
 ### Custom ignores
 
 */build
+
+# Ignore Gradle build output directory
+build
+.linkie-cache
