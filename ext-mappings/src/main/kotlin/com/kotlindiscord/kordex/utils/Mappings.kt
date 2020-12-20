@@ -7,6 +7,7 @@ import me.shedaniel.linkie.utils.mapFieldIntermediaryDescToNamed
 
 private const val PAGE_SIZE = 3
 
+/** Given a set of result classes, format them into a list of pages for the paginator. **/
 fun classesToPages(
     namespace: Namespace,
     result: QueryResultCompound<ClassResultSequence>
@@ -44,6 +45,7 @@ fun classesToPages(
     return pages
 }
 
+/** Given a set of result fields, format them into a list of pages for the paginator. **/
 fun fieldsToPages(
     namespace: Namespace,
     mappings: MappingsContainer,
@@ -107,6 +109,7 @@ fun fieldsToPages(
     return pages
 }
 
+/** Given a set of result methods, format them into a list of pages for the paginator. **/
 fun methodsToPages(
     namespace: Namespace,
     mappings: MappingsContainer,

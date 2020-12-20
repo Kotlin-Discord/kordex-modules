@@ -7,6 +7,8 @@ import com.kotlindiscord.kordex.YarnChannels
 import com.kotlindiscord.kordex.converters.namespace
 import com.kotlindiscord.kordex.converters.optionalMappingsVersion
 
+/** Arguments for generic mappings lookup commands. **/
+@Suppress("UndocumentedPublicProperty")
 class GenericArguments : Arguments() {
     val ns by namespace("namespace")
     val query by string("query")

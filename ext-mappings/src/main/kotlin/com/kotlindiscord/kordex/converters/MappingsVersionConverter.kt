@@ -7,6 +7,9 @@ import com.kotlindiscord.kord.extensions.commands.converters.SingleConverter
 import me.shedaniel.linkie.MappingsContainer
 import me.shedaniel.linkie.Namespace
 
+/**
+ * Argument converter for [MappingsContainer] objects based on mappings versions.
+ */
 class MappingsVersionConverter(
     private val namespaceGetter: suspend () -> Namespace
 ) : SingleConverter<MappingsContainer>() {
@@ -16,7 +19,7 @@ class MappingsVersionConverter(
         val namespace = namespaceGetter.invoke()
 
         if (arg in namespace.getAllVersions()) {
-            val version =  namespace[arg]
+            val version = namespace[arg]
 
             if (version == null) {
                 val created = namespace.createAndAdd(arg)

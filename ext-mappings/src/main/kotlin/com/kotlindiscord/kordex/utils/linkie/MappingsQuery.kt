@@ -14,6 +14,24 @@
  * limitations under the License.
  */
 
+// These are Linkie classes and functions, they came like this.
+@file:Suppress(
+    "CollapsibleIfStatements",
+    "DataClassShouldBeImmutable",
+    "ExpressionBodySyntax",
+    "MagicNumber",
+    "MandatoryBracesIfStatements",
+    "MaxLineLength",
+    "MultiLineIfElse",
+    "OptionalWhenBraces",
+    "UndocumentedPublicClass",
+    "UndocumentedPublicFunction",
+    "UndocumentedPublicProperty",
+    "UnnecessaryParentheses",
+    "UnusedPrivateMember",
+    "UseIfInsteadOfWhen",
+)
+
 package com.kotlindiscord.kordex.utils.linkie
 
 import me.shedaniel.linkie.*

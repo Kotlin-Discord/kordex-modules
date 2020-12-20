@@ -13,7 +13,6 @@ import dev.kord.core.behavior.channel.withTyping
 import me.shedaniel.linkie.MappingsProvider
 import me.shedaniel.linkie.Namespaces
 import me.shedaniel.linkie.namespaces.*
-import me.shedaniel.linkie.utils.onlyClass
 
 /**
  * Extension providing Minecraft mappings lookups on Discord.
@@ -40,7 +39,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
         command {
             name = "class"
 
-            aliases = arrayOf("c",)
+            aliases = arrayOf("c")
             signature(::GenericArguments)
 
             action {
@@ -75,6 +74,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                 var pages: List<String>
 
                 message.channel.withTyping {
+                    @Suppress("TooGenericExceptionCaught")
                     val result = try {
                         MappingsQuery.queryClasses(
                             QueryContext(
@@ -108,7 +108,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
         command {
             name = "field"
 
-            aliases = arrayOf("f",)
+            aliases = arrayOf("f")
             signature(::GenericArguments)
 
             action {
@@ -143,6 +143,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                 var pages: List<String>
 
                 message.channel.withTyping {
+                    @Suppress("TooGenericExceptionCaught")
                     val result = try {
                         MappingsQuery.queryFields(
                             QueryContext(
@@ -219,6 +220,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                 var pages: List<String>
 
                 message.channel.withTyping {
+                    @Suppress("TooGenericExceptionCaught")
                     val result = try {
                         MappingsQuery.queryMethods(
                             QueryContext(
