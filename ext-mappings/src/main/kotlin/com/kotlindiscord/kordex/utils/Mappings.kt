@@ -10,13 +10,13 @@ private const val PAGE_SIZE = 3
 /** Given a set of result classes, format them into a list of pages for the paginator. **/
 fun classesToPages(
     namespace: Namespace,
-    result: QueryResultCompound<ClassResultSequence>
+    queryResult: QueryResultCompound<ClassResultSequence>
 ): List<String> {
     val pages = mutableListOf<String>()
-    val classes = result.map { it.map { inner -> inner.value }.toList() }.value
+    val classes = queryResult.map { it.map { inner -> inner.value }.toList() }.value
 
     classes.chunked(PAGE_SIZE).forEach { result ->
-        val page = result.map { clazz ->
+        val page = result.joinToString("\n\n") { clazz ->
             var text = ""
 
             text += "**Class:** `${clazz.optimumName}`\n"
@@ -37,7 +37,7 @@ fun classesToPages(
             }
 
             text
-        }.joinToString("\n\n")
+        }
 
         pages.add(page)
     }
@@ -49,13 +49,13 @@ fun classesToPages(
 fun fieldsToPages(
     namespace: Namespace,
     mappings: MappingsContainer,
-    result: QueryResultCompound<FieldResultSequence>
+    queryResult: QueryResultCompound<FieldResultSequence>
 ): List<String> {
     val pages = mutableListOf<String>()
-    val fields = result.map { it.map { inner -> inner.value }.toList() }.value
+    val fields = queryResult.map { it.map { inner -> inner.value }.toList() }.value
 
     fields.chunked(PAGE_SIZE).forEach { result ->
-        val page = result.map {
+        val page = result.joinToString("\n\n") {
             val (clazz, field) = it
             var text = ""
 
@@ -101,7 +101,7 @@ fun fieldsToPages(
             }
 
             text
-        }.joinToString("\n\n")
+        }
 
         pages.add(page)
     }
@@ -113,13 +113,13 @@ fun fieldsToPages(
 fun methodsToPages(
     namespace: Namespace,
     mappings: MappingsContainer,
-    result: QueryResultCompound<MethodResultSequence>
+    queryResult: QueryResultCompound<MethodResultSequence>
 ): List<String> {
     val pages = mutableListOf<String>()
-    val methods = result.map { it.map { inner -> inner.value }.toList() }.value
+    val methods = queryResult.map { it.map { inner -> inner.value }.toList() }.value
 
     methods.chunked(PAGE_SIZE).forEach { result ->
-        val page = result.map {
+        val page = result.joinToString("\n\n") {
             val (clazz, method) = it
             var text = ""
 
@@ -158,7 +158,7 @@ fun methodsToPages(
             }
 
             text
-        }.joinToString("\n\n")
+        }
 
         pages.add(page)
     }
