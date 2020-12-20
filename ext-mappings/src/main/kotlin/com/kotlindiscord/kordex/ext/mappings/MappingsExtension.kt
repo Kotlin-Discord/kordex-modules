@@ -9,6 +9,9 @@ import com.kotlindiscord.kordex.ext.mappings.arguments.GenericArguments
 import com.kotlindiscord.kordex.ext.mappings.arguments.MCPArguments
 import com.kotlindiscord.kordex.ext.mappings.arguments.MojangArguments
 import com.kotlindiscord.kordex.ext.mappings.arguments.YarnArguments
+import com.kotlindiscord.kordex.ext.mappings.configuration.MappingsConfigAdapter
+import com.kotlindiscord.kordex.ext.mappings.configuration.TomlMappingsConfig
+import com.kotlindiscord.kordex.ext.mappings.exceptions.UnsupportedNamespaceException
 import com.kotlindiscord.kordex.ext.mappings.utils.classesToPages
 import com.kotlindiscord.kordex.ext.mappings.utils.fieldsToPages
 import com.kotlindiscord.kordex.ext.mappings.utils.linkie.*
@@ -19,6 +22,7 @@ import me.shedaniel.linkie.MappingsProvider
 import me.shedaniel.linkie.Namespace
 import me.shedaniel.linkie.Namespaces
 import me.shedaniel.linkie.namespaces.*
+import mu.KotlinLogging
 
 private const val VERSION_CHUNK_SIZE = 10
 
@@ -26,17 +30,52 @@ private const val VERSION_CHUNK_SIZE = 10
  * Extension providing Minecraft mappings lookups on Discord.
  */
 class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
-    override val name: String = "mappings"
+    companion object {
+        /** Mappings configuration object. **/
+        var config: MappingsConfigAdapter = TomlMappingsConfig()
 
-    init {
-        Namespaces.init(
-            MCPNamespace,
-            MojangNamespace,
-            YarnNamespace,
-        )
+        /**
+         * Call this before your bot starts to change the configuration adapter used by this extension.
+         */
+        fun configure(configObject: MappingsConfigAdapter) {
+            config = configObject
+        }
     }
 
+    private val logger = KotlinLogging.logger { }
+
+    override val name: String = "mappings"
+
     override suspend fun setup() {
+        val namespaces = mutableListOf<Namespace>()
+        val enabledNamespaces = config.getEnabledNamespaces()
+
+        enabledNamespaces.forEach {
+            when (it) {
+                "mcp" -> namespaces.add(MCPNamespace)
+                "mojang" -> namespaces.add(MojangNamespace)
+                "yarn" -> namespaces.add(YarnNamespace)
+
+                else -> throw UnsupportedNamespaceException(it)
+            }
+        }
+
+        if (namespaces.isEmpty()) {
+            logger.warn { "No namespaces have been enabled, not registering commands." }
+            return
+        }
+
+        Namespaces.init(*namespaces.toTypedArray())
+
+        val namespaceNames = getNamespaceNames()
+        val classCommands = getNamespaceCommands("c")
+        val fieldCommands = getNamespaceCommands("f")
+        val methodCommands = getNamespaceCommands("m")
+
+        val mcpEnabled = enabledNamespaces.contains("mcp")
+        val mojangEnabled = enabledNamespaces.contains("mojang")
+        val yarnEnabled = enabledNamespaces.contains("yarn")
+
         // region: Generic mappings lookups
 
         // Class
@@ -45,15 +84,19 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
             description = "Look up mappings info for a class, given a specific mappings namespace.\n\n" +
 
-                    "**Namespaces:** `mcp`, `mojang`, `yarn`\n" +
-                    "**Yarn channels:** " + YarnChannels.values().joinToString(", ") { "`${it.str}`" } +
-                    "\n\n" +
+                    "**Namespaces:** $namespaceNames\n" +
+
+                    if (yarnEnabled) {
+                        "**Yarn channels:** " + YarnChannels.values().joinToString(", ") { "`${it.str}`" }
+                    } else {
+                        ""
+                    } + "\n\n" +
 
                     "Instead of specifying a mappings namespace here, you can use the following commands to query " +
-                    "each namespace directly: `mcpc`, `mmc` or `yc`.\n\n" +
+                    "each namespace directly: $classCommands.\n\n" +
 
                     "For more information or a list of versions for each namespace, you can use the following " +
-                    "commands: `mcp`, `mojang` or `yarn`."
+                    "commands: $namespaceNames."
 
             aliases = arrayOf("c")
             signature(::GenericArguments)
@@ -75,15 +118,19 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
             description = "Look up mappings info for a field, given a specific mappings namespace.\n\n" +
 
-                    "**Namespaces:** `mcp`, `mojang`, `yarn`\n" +
-                    "**Yarn channels:** " + YarnChannels.values().joinToString(", ") { "`${it.str}`" } +
-                    "\n\n" +
+                    "**Namespaces:** $namespaceNames\n" +
+
+                    if (yarnEnabled) {
+                        "**Yarn channels:** " + YarnChannels.values().joinToString(", ") { "`${it.str}`" }
+                    } else {
+                        ""
+                    } + "\n\n" +
 
                     "Instead of specifying a mappings namespace here, you can use the following commands to query " +
-                    "each namespace directly: `mcpf`, `mmf` or `yf`.\n\n" +
+                    "each namespace directly: $fieldCommands.\n\n" +
 
                     "For more information or a list of versions for each namespace, you can use the following " +
-                    "commands: `mcp`, `mojang` or `yarn`."
+                    "commands: $namespaceNames."
 
             aliases = arrayOf("f")
             signature(::GenericArguments)
@@ -105,24 +152,21 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
             description = "Look up mappings info for a method, given a specific mappings namespace.\n\n" +
 
-                    "**Namespaces:** `mcp`, `mojang`, `yarn`\n" +
-                    "**Yarn channels:** " + YarnChannels.values().joinToString(", ") { "`${it.str}`" } +
-                    "\n\n" +
+                    "**Namespaces:** $namespaceNames\n" +
+
+                    if (yarnEnabled) {
+                        "**Yarn channels:** " + YarnChannels.values().joinToString(", ") { "`${it.str}`" }
+                    } else {
+                        ""
+                    } + "\n\n" +
 
                     "Instead of specifying a mappings namespace here, you can use the following commands to query " +
-                    "each namespace directly: `mcpm`, `mmm` or `ym`.\n\n" +
+                    "each namespace directly: $methodCommands.\n\n" +
 
                     "For more information or a list of versions for each namespace, you can use the following " +
-                    "commands: `mcp`, `mojang` or `yarn`."
+                    "commands: $namespaceNames."
 
-            aliases = arrayOf(
-                "m",  // Short command name
-
-//                "mcpm",  // MCP
-//                "mmm", "mojmapm",  // Mojang
-//                "plasmam",  // Plasma
-//                "ym", "yarnm",  // Yarn
-            )
+            aliases = arrayOf("m")
 
             signature(::GenericArguments)
 
@@ -141,66 +185,68 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
         // region: MCP mappings lookups
 
-        // Class
-        command {
-            name = "mcpc"
+        if (mcpEnabled) {
+            // Class
+            command {
+                name = "mcpc"
 
-            description = "Look up MCP mappings info for a class.\n\n" +
+                description = "Look up MCP mappings info for a class.\n\n" +
 
-                    "For more information or a list of versions for MCP mappings, you can use the `mcp` command."
+                        "For more information or a list of versions for MCP mappings, you can use the `mcp` command."
 
-            signature(::MCPArguments)
+                signature(::MCPArguments)
 
-            action {
-                val args: MCPArguments
+                action {
+                    val args: MCPArguments
 
-                message.channel.withTyping {
-                    args = parse(::MCPArguments)
+                    message.channel.withTyping {
+                        args = parse(::MCPArguments)
+                    }
+
+                    queryClasses(MCPNamespace, args.query, args.version)
                 }
-
-                queryClasses(MCPNamespace, args.query, args.version)
             }
-        }
 
-        // Field
-        command {
-            name = "mcpf"
+            // Field
+            command {
+                name = "mcpf"
 
-            description = "Look up MCP mappings info for a field.\n\n" +
+                description = "Look up MCP mappings info for a field.\n\n" +
 
-                    "For more information or a list of versions for MCP mappings, you can use the `mcp` command."
+                        "For more information or a list of versions for MCP mappings, you can use the `mcp` command."
 
-            signature(::MCPArguments)
+                signature(::MCPArguments)
 
-            action {
-                val args: MCPArguments
+                action {
+                    val args: MCPArguments
 
-                message.channel.withTyping {
-                    args = parse(::MCPArguments)
+                    message.channel.withTyping {
+                        args = parse(::MCPArguments)
+                    }
+
+                    queryFields(MCPNamespace, args.query, args.version)
                 }
-
-                queryFields(MCPNamespace, args.query, args.version)
             }
-        }
 
-        // Method
-        command {
-            name = "mcpm"
+            // Method
+            command {
+                name = "mcpm"
 
-            description = "Look up MCP mappings info for a method.\n\n" +
+                description = "Look up MCP mappings info for a method.\n\n" +
 
-                    "For more information or a list of versions for MCP mappings, you can use the `mcp` command."
+                        "For more information or a list of versions for MCP mappings, you can use the `mcp` command."
 
-            signature(::MCPArguments)
+                signature(::MCPArguments)
 
-            action {
-                val args: MCPArguments
+                action {
+                    val args: MCPArguments
 
-                message.channel.withTyping {
-                    args = parse(::MCPArguments)
+                    message.channel.withTyping {
+                        args = parse(::MCPArguments)
+                    }
+
+                    queryMethods(MCPNamespace, args.query, args.version)
                 }
-
-                queryMethods(MCPNamespace, args.query, args.version)
             }
         }
 
@@ -208,69 +254,74 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
         // region: Mojang mappings lookups
 
-        // Class
-        command {
-            name = "mmc"
-            aliases = arrayOf("mojc", "mojmapc")
+        if (mojangEnabled) {
+            // Class
+            command {
+                name = "mmc"
+                aliases = arrayOf("mojc", "mojmapc")
 
-            description = "Look up Mojang mappings info for a class.\n\n" +
+                description = "Look up Mojang mappings info for a class.\n\n" +
 
-                    "For more information or a list of versions for Mojang mappings, you can use the `mojang` command."
+                        "For more information or a list of versions for Mojang mappings, you can use the `mojang` " +
+                        "command."
 
-            signature(::MojangArguments)
+                signature(::MojangArguments)
 
-            action {
-                val args: MojangArguments
+                action {
+                    val args: MojangArguments
 
-                message.channel.withTyping {
-                    args = parse(::MojangArguments)
+                    message.channel.withTyping {
+                        args = parse(::MojangArguments)
+                    }
+
+                    queryClasses(MojangNamespace, args.query, args.version)
                 }
-
-                queryClasses(MojangNamespace, args.query, args.version)
             }
-        }
 
-        // Field
-        command {
-            name = "mmf"
-            aliases = arrayOf("mojf", "mojmapf")
+            // Field
+            command {
+                name = "mmf"
+                aliases = arrayOf("mojf", "mojmapf")
 
-            description = "Look up Mojang mappings info for a field.\n\n" +
+                description = "Look up Mojang mappings info for a field.\n\n" +
 
-                    "For more information or a list of versions for Mojang mappings, you can use the `mojang` command."
+                        "For more information or a list of versions for Mojang mappings, you can use the `mojang` " +
+                        "command."
 
-            signature(::MojangArguments)
+                signature(::MojangArguments)
 
-            action {
-                val args: MojangArguments
+                action {
+                    val args: MojangArguments
 
-                message.channel.withTyping {
-                    args = parse(::MojangArguments)
+                    message.channel.withTyping {
+                        args = parse(::MojangArguments)
+                    }
+
+                    queryFields(MojangNamespace, args.query, args.version)
                 }
-
-                queryFields(MojangNamespace, args.query, args.version)
             }
-        }
 
-        // Method
-        command {
-            name = "mmm"
-            aliases = arrayOf("mojm", "mojmapm")
+            // Method
+            command {
+                name = "mmm"
+                aliases = arrayOf("mojm", "mojmapm")
 
-            description = "Look up Mojang mappings info for a method.\n\n" +
+                description = "Look up Mojang mappings info for a method.\n\n" +
 
-                    "For more information or a list of versions for Mojang mappings, you can use the `mojang` command."
+                        "For more information or a list of versions for Mojang mappings, you can use the `mojang` " +
+                        "command."
 
-            signature(::MojangArguments)
+                signature(::MojangArguments)
 
-            action {
-                val args: MojangArguments
+                action {
+                    val args: MojangArguments
 
-                message.channel.withTyping {
-                    args = parse(::MojangArguments)
+                    message.channel.withTyping {
+                        args = parse(::MojangArguments)
+                    }
+
+                    queryMethods(MojangNamespace, args.query, args.version)
                 }
-
-                queryMethods(MojangNamespace, args.query, args.version)
             }
         }
 
@@ -278,78 +329,83 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
         // region: Yarn mappings lookups
 
-        // Class
-        command {
-            name = "yc"
-            aliases = arrayOf("yarnc")
+        if (yarnEnabled) {
+            // Class
+            command {
+                name = "yc"
+                aliases = arrayOf("yarnc")
 
-            description = "Look up Yarn mappings info for a class.\n\n" +
+                description = "Look up Yarn mappings info for a class.\n\n" +
 
-                    "**Yarn channels:** " + YarnChannels.values().joinToString(", ") { "`${it.str}`" } +
-                    "\n\n" +
+                        "**Yarn channels:** " + YarnChannels.values().joinToString(", ") { "`${it.str}`" } +
+                        "\n\n" +
 
-                    "For more information or a list of versions for Mojang mappings, you can use the `yarn` command."
+                        "For more information or a list of versions for Mojang mappings, you can use the `yarn` " +
+                        "command."
 
-            signature(::YarnArguments)
+                signature(::YarnArguments)
 
-            action {
-                val args: YarnArguments
+                action {
+                    val args: YarnArguments
 
-                message.channel.withTyping {
-                    args = parse(::YarnArguments)
+                    message.channel.withTyping {
+                        args = parse(::YarnArguments)
+                    }
+
+                    queryClasses(YarnNamespace, args.query, args.version, args.yarnChannel)
                 }
-
-                queryClasses(YarnNamespace, args.query, args.version, args.yarnChannel)
             }
-        }
 
-        // Field
-        command {
-            name = "yf"
-            aliases = arrayOf("yarnf")
+            // Field
+            command {
+                name = "yf"
+                aliases = arrayOf("yarnf")
 
-            description = "Look up Yarn mappings info for a field.\n\n" +
+                description = "Look up Yarn mappings info for a field.\n\n" +
 
-                    "**Yarn channels:** " + YarnChannels.values().joinToString(", ") { "`${it.str}`" } +
-                    "\n\n" +
+                        "**Yarn channels:** " + YarnChannels.values().joinToString(", ") { "`${it.str}`" } +
+                        "\n\n" +
 
-                    "For more information or a list of versions for Mojang mappings, you can use the `yarn` command."
+                        "For more information or a list of versions for Mojang mappings, you can use the `yarn` " +
+                        "command."
 
-            signature(::YarnArguments)
+                signature(::YarnArguments)
 
-            action {
-                val args: YarnArguments
+                action {
+                    val args: YarnArguments
 
-                message.channel.withTyping {
-                    args = parse(::YarnArguments)
+                    message.channel.withTyping {
+                        args = parse(::YarnArguments)
+                    }
+
+                    queryFields(YarnNamespace, args.query, args.version, args.yarnChannel)
                 }
-
-                queryFields(YarnNamespace, args.query, args.version, args.yarnChannel)
             }
-        }
 
-        // Method
-        command {
-            name = "ym"
-            aliases = arrayOf("yarnm")
+            // Method
+            command {
+                name = "ym"
+                aliases = arrayOf("yarnm")
 
-            description = "Look up Yarn mappings info for a method.\n\n" +
+                description = "Look up Yarn mappings info for a method.\n\n" +
 
-                    "**Yarn channels:** " + YarnChannels.values().joinToString(", ") { "`${it.str}`" } +
-                    "\n\n" +
+                        "**Yarn channels:** " + YarnChannels.values().joinToString(", ") { "`${it.str}`" } +
+                        "\n\n" +
 
-                    "For more information or a list of versions for Mojang mappings, you can use the `yarn` command."
+                        "For more information or a list of versions for Mojang mappings, you can use the `yarn` " +
+                        "command."
 
-            signature(::YarnArguments)
+                signature(::YarnArguments)
 
-            action {
-                val args: YarnArguments
+                action {
+                    val args: YarnArguments
 
-                message.channel.withTyping {
-                    args = parse(::YarnArguments)
+                    message.channel.withTyping {
+                        args = parse(::YarnArguments)
+                    }
+
+                    queryMethods(YarnNamespace, args.query, args.version, args.yarnChannel)
                 }
-
-                queryMethods(YarnNamespace, args.query, args.version, args.yarnChannel)
             }
         }
 
@@ -357,140 +413,145 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
         // region: Mappings info commands
 
-        // MCP
-        command {
-            name = "mcp"
+        if (mcpEnabled) {
+            command {
+                name = "mcp"
 
-            description = "Get information and a list of supported versions for MCP mappings."
+                description = "Get information and a list of supported versions for MCP mappings."
 
-            action {
-                val defaultVersion = MCPNamespace.getDefaultVersion()
-                val allVersions = MCPNamespace.getAllSortedVersions()
+                action {
+                    val defaultVersion = MCPNamespace.getDefaultVersion()
+                    val allVersions = MCPNamespace.getAllSortedVersions()
 
-                val pages = allVersions.chunked(VERSION_CHUNK_SIZE).map {
-                    it.joinToString("\n") { version ->
-                        if (version == defaultVersion) {
-                            "**» $version** (Default)"
-                        } else {
-                            "**»** $version"
+                    val pages = allVersions.chunked(VERSION_CHUNK_SIZE).map {
+                        it.joinToString("\n") { version ->
+                            if (version == defaultVersion) {
+                                "**» $version** (Default)"
+                            } else {
+                                "**»** $version"
+                            }
                         }
-                    }
-                }.toMutableList()
+                    }.toMutableList()
 
-                pages.add(
-                    0,
-                    "MCP mappings are available for queries across **${allVersions.size}** versions.\n\n" +
+                    pages.add(
+                        0,
+                        "MCP mappings are available for queries across **${allVersions.size}** versions.\n\n" +
 
-                            "**Default version:** $defaultVersion\n" +
+                                "**Default version:** $defaultVersion\n" +
 
-                            "For a full list of supported MCP versions, please view the rest of the pages."
-                )
+                                "For a full list of supported MCP versions, please view the rest of the pages."
+                    )
 
-                val paginator = Paginator(
-                    bot,
-                    message.channel,
-                    "Mappings info: MCP",
-                    pages,
-                    message.author,
-                    keepEmbed = true
-                )
+                    val paginator = Paginator(
+                        bot,
+                        message.channel,
+                        "Mappings info: MCP",
+                        pages,
+                        message.author,
+                        keepEmbed = true
+                    )
 
-                paginator.send()
+                    paginator.send()
+                }
             }
         }
 
-        // Mojang
-        command {
-            name = "mojang"
-            aliases = arrayOf("mojmap")
+        if (mojangEnabled) {
+            command {
+                name = "mojang"
+                aliases = arrayOf("mojmap")
 
-            description = "Get information and a list of supported versions for Mojang mappings."
+                description = "Get information and a list of supported versions for Mojang mappings."
 
-            action {
-                val defaultVersion = MojangNamespace.getDefaultVersion()
-                val allVersions = MojangNamespace.getAllSortedVersions()
+                action {
+                    val defaultVersion = MojangNamespace.getDefaultVersion()
+                    val allVersions = MojangNamespace.getAllSortedVersions()
 
-                val pages = allVersions.chunked(VERSION_CHUNK_SIZE).map {
-                    it.joinToString("\n") { version ->
-                        if (version == defaultVersion) {
-                            "**» $version** (Default)"
-                        } else {
-                            "**»** $version"
+                    val pages = allVersions.chunked(VERSION_CHUNK_SIZE).map {
+                        it.joinToString("\n") { version ->
+                            if (version == defaultVersion) {
+                                "**» $version** (Default)"
+                            } else {
+                                "**»** $version"
+                            }
                         }
-                    }
-                }.toMutableList()
+                    }.toMutableList()
 
-                pages.add(
-                    0,
-                    "Mojang mappings are available for queries across **${allVersions.size}** versions.\n\n" +
+                    pages.add(
+                        0,
+                        "Mojang mappings are available for queries across **${allVersions.size}** versions.\n\n" +
 
-                            "**Default version:** $defaultVersion\n" +
+                                "**Default version:** $defaultVersion\n" +
 
-                            "For a full list of supported Mojang versions, please view the rest of the pages."
-                )
+                                "For a full list of supported Mojang versions, please view the rest of the pages."
+                    )
 
-                val paginator = Paginator(
-                    bot,
-                    message.channel,
-                    "Mappings info: Mojang",
-                    pages,
-                    message.author,
-                    keepEmbed = true
-                )
+                    val paginator = Paginator(
+                        bot,
+                        message.channel,
+                        "Mappings info: Mojang",
+                        pages,
+                        message.author,
+                        keepEmbed = true
+                    )
 
-                paginator.send()
+                    paginator.send()
+                }
             }
         }
 
-        // Yarn
-        command {
-            name = "yarn"
+        if (yarnEnabled) {
+            command {
+                name = "yarn"
 
-            description = "Get information and a list of supported versions for Yarn mappings."
+                description = "Get information and a list of supported versions for Yarn mappings."
 
-            action {
-                val defaultVersion = YarnNamespace.getDefaultVersion()
-                val defaultLegacyVersion = YarnNamespace.getDefaultVersion { YarnChannels.LEGACY.str }
-                val defaultPatchworkVersion = YarnNamespace.getDefaultVersion { YarnChannels.PATCHWORK.str }
-                val allVersions = YarnNamespace.getAllSortedVersions()
+                action {
+                    val defaultVersion = YarnNamespace.getDefaultVersion()
+                    val defaultLegacyVersion = YarnNamespace.getDefaultVersion { YarnChannels.LEGACY.str }
+                    val defaultPatchworkVersion = YarnNamespace.getDefaultVersion { YarnChannels.PATCHWORK.str }
+                    val allVersions = YarnNamespace.getAllSortedVersions()
 
-                val pages = allVersions.chunked(VERSION_CHUNK_SIZE).map {
-                    it.joinToString("\n") { version ->
-                        when (version) {
-                            defaultVersion -> "**» $version** (Default)"
-                            defaultLegacyVersion -> "**» $version** (Default: Legacy)"
-                            defaultPatchworkVersion -> "**» $version** (Default: Patchwork)"
+                    val pages = allVersions.chunked(VERSION_CHUNK_SIZE).map {
+                        it.joinToString("\n") { version ->
+                            when (version) {
+                                defaultVersion -> "**» $version** (Default)"
+                                defaultLegacyVersion -> "**» $version** (Default: Legacy)"
+                                defaultPatchworkVersion -> "**» $version** (Default: Patchwork)"
 
-                            else -> "**»** $version"
+                                else -> "**»** $version"
+                            }
                         }
-                    }
-                }.toMutableList()
+                    }.toMutableList()
 
-                pages.add(
-                    0,
-                    "Yarn mappings are available for queries across **${allVersions.size}** versions.\n\n" +
+                    pages.add(
+                        0,
+                        "Yarn mappings are available for queries across **${allVersions.size}** versions.\n\n" +
 
-                            "**Default version:** $defaultVersion\n" +
-                            "**Default Legacy version:** $defaultLegacyVersion\n" +
-                            "**Default Patchwork version:** $defaultPatchworkVersion\n\n" +
+                                "**Default version:** $defaultVersion\n" +
+                                "**Default Legacy version:** $defaultLegacyVersion\n" +
+                                "**Default Patchwork version:** $defaultPatchworkVersion\n\n" +
 
-                            "For a full list of supported Yarn versions, please view the rest of the pages."
-                )
+                                "For a full list of supported Yarn versions, please view the rest of the pages."
+                    )
 
-                val paginator = Paginator(
-                    bot,
-                    message.channel,
-                    "Mappings info: Yarn",
-                    pages,
-                    message.author,
-                    keepEmbed = true
-                )
+                    val paginator = Paginator(
+                        bot,
+                        message.channel,
+                        "Mappings info: Yarn",
+                        pages,
+                        message.author,
+                        keepEmbed = true
+                    )
 
-                paginator.send()
+                    paginator.send()
+                }
             }
         }
 
         // endregion
+
+        logger.info { "Mappings extension set up - namespaces: " + enabledNamespaces.joinToString(", ") }
     }
 
     private suspend fun CommandContext.queryClasses(
@@ -663,4 +724,20 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
         paginator.send()
     }
+
+    private suspend fun getNamespaceNames(suffix: String? = null) =
+        config.getEnabledNamespaces().joinToString(", ") { "`$it${suffix ?: ""}`" }
+
+    private suspend fun getNamespaceCommands(suffix: String) =
+        config.getEnabledNamespaces().joinToString(", ") {
+            val prefix = when (it) {
+                "mcp" -> "mcp"
+                "mojang" -> "mm"
+                "yarn" -> "y"
+
+                else -> ""
+            }
+
+            "`$prefix$suffix`"
+        }
 }

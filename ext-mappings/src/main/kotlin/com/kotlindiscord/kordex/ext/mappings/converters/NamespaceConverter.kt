@@ -14,7 +14,7 @@ class NamespaceConverter : SingleConverter<Namespace>() {
     override val signatureTypeString: String = "mappings"
 
     override suspend fun parse(arg: String, context: CommandContext, bot: ExtensibleBot): Boolean {
-        this.parsed = Namespaces.namespaces[arg] ?: throw ParseException("Invalid mappings namespace: $arg")
+        this.parsed = Namespaces.namespaces[arg] ?: throw ParseException("Invalid mappings namespace: `$arg`")
 
         return true
     }
