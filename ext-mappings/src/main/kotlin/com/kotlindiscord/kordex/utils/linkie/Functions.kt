@@ -82,3 +82,41 @@ inline fun String?.mapIfNotNullOrNotEquals(other: String, mapper: (String) -> St
 
 fun String.mapObfDescToNamed(container: MappingsContainer): String =
     remapMethodDescriptor { container.getClassByObfName(it)?.intermediaryName ?: it }
+
+fun String.localiseFieldDesc(): String {
+    if (isEmpty()) return this
+    if (length == 1) {
+        return localisePrimitive(first())
+    }
+    val s = this
+    var offset = 0
+    for (i in s.indices) {
+        if (s[i] == '[')
+            offset++
+        else break
+    }
+    if (offset + 1 == length) {
+        val primitive = StringBuilder(localisePrimitive(first()))
+        for (i in 1..offset) primitive.append("[]")
+        return primitive.toString()
+    }
+    if (s[offset + 1] == 'L') {
+        val substring = StringBuilder(substring(offset + 1))
+        for (i in 1..offset) substring.append("[]")
+        return substring.toString()
+    }
+    return s
+}
+
+fun localisePrimitive(char: Char): String =
+    when (char) {
+        'Z' -> "boolean"
+        'C' -> "char"
+        'B' -> "byte"
+        'S' -> "short"
+        'I' -> "int"
+        'F' -> "float"
+        'J' -> "long"
+        'D' -> "double"
+        else -> char.toString()
+    }

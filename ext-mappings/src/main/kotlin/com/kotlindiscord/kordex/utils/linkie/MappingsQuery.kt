@@ -54,17 +54,17 @@ object MappingsQuery {
 
         if (classes.entries.isEmpty()) {
             if (searchKey.onlyClass().firstOrNull()?.isDigit() == true && !searchKey.onlyClass().isValidIdentifier()) {
-                throw NullPointerException("No results found! `${searchKey.onlyClass()}` is not a valid java identifier!")
+                throw NullPointerException("No results found: `${searchKey.onlyClass()}` is not a valid java identifier")
             } else if (searchKey.startsWith("func_") || searchKey.startsWith("method_")) {
-                throw NullPointerException("No results found! `$searchKey` looks like a method!")
+                throw NullPointerException("No results found: `$searchKey` looks like a method")
             } else if (searchKey.startsWith("field_")) {
-                throw NullPointerException("No results found! `$searchKey` looks like a field!")
+                throw NullPointerException("No results found: `$searchKey` looks like a field")
             } else if ((!searchKey.startsWith("class_") && searchKey.firstOrNull()
                     ?.isLowerCase() == true) || searchKey.firstOrNull()?.isDigit() == true
             ) {
-                throw NullPointerException("No results found! `$searchKey` doesn't look like a class!")
+                throw NullPointerException("No results found: `$searchKey` doesn't look like a class")
             }
-            throw NullPointerException("No results found!")
+            throw NullPointerException("No results found")
         }
 
         val sortedClasses: Sequence<ResultHolder<Class>> = when {
@@ -197,13 +197,13 @@ object MappingsQuery {
 
         if (fields.entries.isEmpty()) {
             if (searchKey.onlyClass().firstOrNull()?.isDigit() == true && !searchKey.onlyClass().isValidIdentifier()) {
-                throw NullPointerException("No results found! `${searchKey.onlyClass()}` is not a valid java identifier!")
+                throw NullPointerException("No results found: `${searchKey.onlyClass()}` is not a valid java identifier")
             } else if (searchKey.startsWith("func_") || searchKey.startsWith("method_")) {
-                throw NullPointerException("No results found! `$searchKey` looks like a method!")
+                throw NullPointerException("No results found: `$searchKey` looks like a method")
             } else if (searchKey.startsWith("class_")) {
-                throw NullPointerException("No results found! `$searchKey` looks like a class!")
+                throw NullPointerException("No results found: `$searchKey` looks like a class")
             }
-            throw NullPointerException("No results found!")
+            throw NullPointerException("No results found")
         }
 
         val result: FieldResultSequence = sortedFields.map {
@@ -337,114 +337,19 @@ object MappingsQuery {
 
         if (methods.entries.isEmpty()) {
             if (searchKey.onlyClass().firstOrNull()?.isDigit() == true && !searchKey.onlyClass().isValidIdentifier()) {
-                throw NullPointerException("No results found! `${searchKey.onlyClass()}` is not a valid java identifier!")
+                throw NullPointerException("No results found: `${searchKey.onlyClass()}` is not a valid java identifier")
             } else if (searchKey.startsWith("class_")) {
-                throw NullPointerException("No results found! `$searchKey` looks like a class!")
+                throw NullPointerException("No results found: `$searchKey` looks like a class")
             } else if (searchKey.startsWith("field_")) {
-                throw NullPointerException("No results found! `$searchKey` looks like a field!")
+                throw NullPointerException("No results found: `$searchKey` looks like a field")
             }
-            throw NullPointerException("No results found!")
+            throw NullPointerException("No results found")
         }
 
         val result: MethodResultSequence = sortedMethods.map {
             it.value.parent to it.value.method hold it.score
         }.sortedByDescending { it.score }
         return QueryResultCompound(mappingsContainer, result)
-    }
-
-    fun buildClass(builder: StringBuilder, namespace: Namespace, classEntry: Class, mappings: MappingsMetadata) =
-        builder.apply {
-            appendLine("**Class: __${classEntry.optimumName}__**")
-            append("__Name__: ")
-            append(classEntry.obfName.buildString(nonEmptySuffix = " => "))
-            append("`${classEntry.intermediaryName}`")
-            append(classEntry.mappedName.mapIfNotNullOrNotEquals(classEntry.intermediaryName) { " => `$it`" } ?: "")
-            if (namespace.supportsAW()) {
-                appendLine().append("__AW__: `accessible class ${classEntry.optimumName}`")
-            } else if (namespace.supportsAT()) {
-                appendLine().append("__AT__: `public ${classEntry.intermediaryName.replace('/', '.')}`")
-            }
-        }
-
-    fun buildField(
-        builder: StringBuilder,
-        namespace: Namespace,
-        field: Field,
-        parent: Class,
-        mappings: MappingsContainer
-    ) = builder.apply {
-        appendLine("**Field: ${parent.optimumName}#__${field.optimumName}__**")
-        append("__Name__: ")
-        append(field.obfName.buildString(nonEmptySuffix = " => "))
-        append("`${field.intermediaryName}`")
-        append(field.mappedName.mapIfNotNullOrNotEquals(field.intermediaryName) { " => `$it`" } ?: "")
-        if (namespace.supportsFieldDescription()) {
-            appendLine().append("__Type__: ")
-            append(
-                (field.mappedDesc
-                    ?: field.intermediaryDesc.mapFieldIntermediaryDescToNamed(mappings)).localiseFieldDesc()
-            )
-        }
-        if (namespace.supportsMixin()) {
-            appendLine().append("__Mixin Target__: `")
-            append("L${parent.optimumName};")
-            append(field.optimumName)
-            append(':')
-            append(field.mappedDesc ?: field.intermediaryDesc.mapFieldIntermediaryDescToNamed(mappings))
-            append('`')
-        }
-        if (namespace.supportsAT()) {
-            appendLine().append("__AT__: `public ${parent.optimumName.replace('/', '.')} ")
-            append(field.intermediaryName)
-            append(" # ")
-            append(field.optimumName)
-            append('`')
-        } else if (namespace.supportsAW()) {
-            appendLine().append("__AW__: `accessible field ")
-            append(parent.optimumName)
-            append(' ')
-            append(field.optimumName)
-            append(' ')
-            append(field.mappedDesc ?: field.intermediaryDesc.mapFieldIntermediaryDescToNamed(mappings))
-            append('`')
-        }
-    }
-
-    fun buildMethod(
-        builder: StringBuilder,
-        namespace: Namespace,
-        method: Method,
-        parent: Class,
-        mappings: MappingsContainer
-    ) = builder.apply {
-        appendLine("**Method: ${parent.optimumName}#__${method.optimumName}__**")
-        append("__Name__: ")
-        append(method.obfName.buildString(nonEmptySuffix = " => "))
-        append("`${method.intermediaryName}`")
-        append(method.mappedName.mapIfNotNullOrNotEquals(method.intermediaryName) { " => `$it`" } ?: "")
-        if (namespace.supportsMixin()) {
-            appendLine().append("__Mixin Target__: `")
-            append("L${parent.optimumName};")
-            append(method.optimumName)
-            append(method.mappedDesc ?: method.intermediaryDesc.mapFieldIntermediaryDescToNamed(mappings))
-            append('`')
-        }
-        if (namespace.supportsAT()) {
-            appendLine().append("__AT__: `public ${parent.optimumName.replace('/', '.')} ")
-            append(method.intermediaryName)
-            append(method.obfDesc.merged!!.mapObfDescToNamed(mappings))
-            append(" # ")
-            append(method.optimumName)
-            append('`')
-        } else if (namespace.supportsAW()) {
-            appendLine().append("__AW__: `accessible method ")
-            append(parent.optimumName)
-            append(' ')
-            append(method.optimumName)
-            append(' ')
-            append(method.mappedDesc ?: method.intermediaryDesc.mapFieldIntermediaryDescToNamed(mappings))
-            append('`')
-        }
     }
 
     private fun String.mapObfDescToNamed(container: MappingsContainer): String =

@@ -5,6 +5,8 @@ import com.kotlindiscord.kord.extensions.Paginator
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.utils.respond
 import com.kotlindiscord.kordex.arguments.GenericArguments
+import com.kotlindiscord.kordex.utils.classesToPages
+import com.kotlindiscord.kordex.utils.fieldsToPages
 import com.kotlindiscord.kordex.utils.linkie.*
 import com.kotlindiscord.kordex.utils.methodsToPages
 import dev.kord.core.behavior.channel.withTyping
@@ -36,6 +38,142 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
     override suspend fun setup() {
         command {
+            name = "class"
+
+            aliases = arrayOf("c",)
+            signature(::GenericArguments)
+
+            action {
+                val args: GenericArguments
+
+                message.channel.withTyping {
+                    args = parse(::GenericArguments)
+                }
+
+                if (args.yarnChannel != null && args.ns == YarnNamespace) {
+                    message.respond("You may only specify a Yarn channel when looking up Yarn mappings.")
+                    return@action
+                }
+
+                val provider = if (args.version == null) {
+                    MappingsProvider.empty(args.ns)
+                } else {
+                    args.ns.getProvider(args.version!!.version)
+                }
+
+                provider.injectDefaultVersion(
+                    args.ns.getDefaultProvider {
+                        if (args.yarnChannel != null) {
+                            args.yarnChannel!!.str
+                        } else {
+                            args.ns.getDefaultMappingChannel()
+                        }
+                    }
+                )
+
+                val query = args.query.replace(".", "/")
+                var pages: List<String>
+
+                message.channel.withTyping {
+                    val result = try {
+                        MappingsQuery.queryClasses(
+                            QueryContext(
+                                provider = provider,
+                                searchKey = query
+                            )
+                        )
+                    } catch (e: NullPointerException) {
+                        message.respond(e.localizedMessage)
+                        return@action
+                    }
+
+                    pages = classesToPages(args.ns, result)
+                }
+
+                val meta = provider.get()
+
+                val paginator = Paginator(
+                    bot,
+                    message.channel,
+                    "List of ${meta.name} classes: ${meta.version}",
+                    pages,
+                    message.author,
+                    keepEmbed = true
+                )
+
+                paginator.send()
+            }
+        }
+
+        command {
+            name = "field"
+
+            aliases = arrayOf("f",)
+            signature(::GenericArguments)
+
+            action {
+                val args: GenericArguments
+
+                message.channel.withTyping {
+                    args = parse(::GenericArguments)
+                }
+
+                if (args.yarnChannel != null && args.ns == YarnNamespace) {
+                    message.respond("You may only specify a Yarn channel when looking up Yarn mappings.")
+                    return@action
+                }
+
+                val provider = if (args.version == null) {
+                    MappingsProvider.empty(args.ns)
+                } else {
+                    args.ns.getProvider(args.version!!.version)
+                }
+
+                provider.injectDefaultVersion(
+                    args.ns.getDefaultProvider {
+                        if (args.yarnChannel != null) {
+                            args.yarnChannel!!.str
+                        } else {
+                            args.ns.getDefaultMappingChannel()
+                        }
+                    }
+                )
+
+                val query = args.query.replace(".", "/")
+                var pages: List<String>
+
+                message.channel.withTyping {
+                    val result = try {
+                        MappingsQuery.queryFields(
+                            QueryContext(
+                                provider = provider,
+                                searchKey = query
+                            )
+                        )
+                    } catch (e: NullPointerException) {
+                        message.respond(e.localizedMessage)
+                        return@action
+                    }
+
+                    pages = fieldsToPages(args.ns, provider.get(), result)
+                }
+
+                val meta = provider.get()
+
+                val paginator = Paginator(
+                    bot,
+                    message.channel,
+                    "List of ${meta.name} fields: ${meta.version}",
+                    pages,
+                    message.author,
+                    keepEmbed = true
+                )
+
+                paginator.send()
+            }
+        }
+
+        command {
             name = "method"
 
             aliases = arrayOf(
@@ -56,6 +194,11 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                     args = parse(::GenericArguments)
                 }
 
+                if (args.yarnChannel != null && args.ns == YarnNamespace) {
+                    message.respond("You may only specify a Yarn channel when looking up Yarn mappings.")
+                    return@action
+                }
+
                 val provider = if (args.version == null) {
                     MappingsProvider.empty(args.ns)
                 } else {
@@ -63,20 +206,30 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                 }
 
                 provider.injectDefaultVersion(
-                    // TODO: For Yarn command, support "legacy" and "patchwork" channels
-                    args.ns.getDefaultProvider()
+                    args.ns.getDefaultProvider {
+                        if (args.yarnChannel != null) {
+                            args.yarnChannel!!.str
+                        } else {
+                            args.ns.getDefaultMappingChannel()
+                        }
+                    }
                 )
 
                 val query = args.query.replace(".", "/")
                 var pages: List<String>
 
                 message.channel.withTyping {
-                    val result = MappingsQuery.queryMethods(
-                        QueryContext(
-                            provider = provider,
-                            searchKey = query
+                    val result = try {
+                        MappingsQuery.queryMethods(
+                            QueryContext(
+                                provider = provider,
+                                searchKey = query
+                            )
                         )
-                    )
+                    } catch (e: NullPointerException) {
+                        message.respond(e.localizedMessage)
+                        return@action
+                    }
 
                     pages = methodsToPages(args.ns, provider.get(), result)
                 }
