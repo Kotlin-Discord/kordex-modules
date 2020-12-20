@@ -30,6 +30,7 @@ jobs:
 
       - name: Copy Artifacts
         run: |
+          rm build/libs/*.jar
           cp */build/libs/*.jar build/libs
 
       - name: Upload artifacts (JARs)
