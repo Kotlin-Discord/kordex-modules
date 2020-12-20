@@ -29,9 +29,9 @@ class TomlMappingsConfig : MappingsConfigAdapter {
         )
 
     init {
-        if (File("config/mappings.toml").exists()) {
+        if (File("config/ext/mappings.toml").exists()) {
             config = config.from.enabled(Feature.FAIL_ON_UNKNOWN_PATH).toml.watchFile(
-                "config/mappings.toml",
+                "config/ext/mappings.toml",
                 optional = true
             )
         }
