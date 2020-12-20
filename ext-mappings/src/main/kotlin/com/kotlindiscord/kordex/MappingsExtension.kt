@@ -6,6 +6,9 @@ import com.kotlindiscord.kord.extensions.commands.CommandContext
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.utils.respond
 import com.kotlindiscord.kordex.arguments.GenericArguments
+import com.kotlindiscord.kordex.arguments.MCPArguments
+import com.kotlindiscord.kordex.arguments.MojangArguments
+import com.kotlindiscord.kordex.arguments.YarnArguments
 import com.kotlindiscord.kordex.utils.classesToPages
 import com.kotlindiscord.kordex.utils.fieldsToPages
 import com.kotlindiscord.kordex.utils.linkie.*
@@ -105,8 +108,180 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
         // endregion
 
+        // region: MCP mappings lookups
+
+        // Class
+        command {
+            name = "mcpc"
+
+            signature(::MCPArguments)
+
+            action {
+                val args: MCPArguments
+
+                message.channel.withTyping {
+                    args = parse(::MCPArguments)
+                }
+
+                queryClasses(MCPNamespace, args.query, args.version)
+            }
+        }
+
+        // Field
+        command {
+            name = "mcpf"
+
+            signature(::MCPArguments)
+
+            action {
+                val args: MCPArguments
+
+                message.channel.withTyping {
+                    args = parse(::MCPArguments)
+                }
+
+                queryFields(MCPNamespace, args.query, args.version)
+            }
+        }
+
+        // Method
+        command {
+            name = "mcpm"
+
+            signature(::MCPArguments)
+
+            action {
+                val args: MCPArguments
+
+                message.channel.withTyping {
+                    args = parse(::MCPArguments)
+                }
+
+                queryMethods(MCPNamespace, args.query, args.version)
+            }
+        }
+
+        // endregion
+
+        // region: Mojang mappings lookups
+
+        // Class
+        command {
+            name = "mmc"
+            aliases = arrayOf("mojc", "mojmapc")
+
+            signature(::MojangArguments)
+
+            action {
+                val args: MojangArguments
+
+                message.channel.withTyping {
+                    args = parse(::MojangArguments)
+                }
+
+                queryClasses(MojangNamespace, args.query, args.version)
+            }
+        }
+
+        // Field
+        command {
+            name = "mmf"
+            aliases = arrayOf("mojf", "mojmapf")
+
+            signature(::MojangArguments)
+
+            action {
+                val args: MojangArguments
+
+                message.channel.withTyping {
+                    args = parse(::MojangArguments)
+                }
+
+                queryFields(MojangNamespace, args.query, args.version)
+            }
+        }
+
+        // Method
+        command {
+            name = "mmm"
+            aliases = arrayOf("mojm", "mojmapm")
+
+            signature(::MojangArguments)
+
+            action {
+                val args: MojangArguments
+
+                message.channel.withTyping {
+                    args = parse(::MojangArguments)
+                }
+
+                queryMethods(MojangNamespace, args.query, args.version)
+            }
+        }
+
+        // endregion
+
+        // region: Yarn mappings lookups
+
+        // Class
+        command {
+            name = "yc"
+            aliases = arrayOf("yarnc")
+
+            signature(::YarnArguments)
+
+            action {
+                val args: YarnArguments
+
+                message.channel.withTyping {
+                    args = parse(::YarnArguments)
+                }
+
+                queryClasses(YarnNamespace, args.query, args.version, args.yarnChannel)
+            }
+        }
+
+        // Field
+        command {
+            name = "yf"
+            aliases = arrayOf("yarnf")
+
+            signature(::YarnArguments)
+
+            action {
+                val args: YarnArguments
+
+                message.channel.withTyping {
+                    args = parse(::YarnArguments)
+                }
+
+                queryFields(YarnNamespace, args.query, args.version, args.yarnChannel)
+            }
+        }
+
+        // Method
+        command {
+            name = "ym"
+            aliases = arrayOf("yarnm")
+
+            signature(::YarnArguments)
+
+            action {
+                val args: YarnArguments
+
+                message.channel.withTyping {
+                    args = parse(::YarnArguments)
+                }
+
+                queryMethods(YarnNamespace, args.query, args.version, args.yarnChannel)
+            }
+        }
+
+        // endregion
+
         // region: Mappings info commands
 
+        // MCP
         command {
             name = "mcp"
 
@@ -146,6 +321,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
             }
         }
 
+        // Mojang
         command {
             name = "mojang"
 
@@ -185,6 +361,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
             }
         }
 
+        // Yarn
         command {
             name = "yarn"
 
@@ -403,13 +580,4 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
         paginator.send()
     }
-
-    private fun getNamespace(name: String) =
-        namespacePrefixes.mapNotNull { (key, value) ->
-            if (name.startsWith(key)) {
-                value
-            } else {
-                null
-            }
-        }.firstOrNull()
 }
