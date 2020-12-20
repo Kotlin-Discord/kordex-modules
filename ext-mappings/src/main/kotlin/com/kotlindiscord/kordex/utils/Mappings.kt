@@ -29,11 +29,11 @@ fun classesToPages(
             text += "\n"
 
             if (namespace.supportsAT()) {
-                text += "**Access Transformer:** ```public " +
+                text += "**Access Transformer:** `public " +
                         clazz.intermediaryName.replace('/', '.') +
-                        "```"
+                        "`"
             } else if (namespace.supportsAW()) {
-                text += "**Access Widener:** ```accessible class ${clazz.optimumName}```"
+                text += "**Access Widener:** `accessible class ${clazz.optimumName}`"
             }
 
             text
@@ -80,24 +80,24 @@ fun fieldsToPages(
             if (namespace.supportsMixin()) {
                 text += "\n"
 
-                text += "**Mixin Target:** ```" +
+                text += "**Mixin Target:** `" +
                         "L${clazz.optimumName};" +
                         field.optimumName +
                         ":" +
                         (field.mappedDesc ?: field.intermediaryDesc.mapFieldIntermediaryDescToNamed(mappings)) +
-                        "```"
+                        "`"
             }
 
             if (namespace.supportsAT()) {
                 text += "\n"
 
-                text += "**Access Transformer:** ```${field.intermediaryName} # ${field.optimumName}```"
+                text += "**Access Transformer:** `${field.intermediaryName} # ${field.optimumName}`"
             } else if (namespace.supportsAW()) {
                 text += "\n"
 
-                text += "**Access Widener:** ```accessible field ${clazz.optimumName} ${field.optimumName} " +
+                text += "**Access Widener:** `accessible field ${clazz.optimumName} ${field.optimumName} " +
                         (field.mappedDesc ?: field.intermediaryDesc.mapFieldIntermediaryDescToNamed(mappings)) +
-                        "```"
+                        "`"
             }
 
             text
@@ -135,26 +135,26 @@ fun methodsToPages(
             if (namespace.supportsMixin()) {
                 text += "\n"
 
-                text += "**Mixin Target** ```" +
+                text += "**Mixin Target** `" +
                         "L${clazz.optimumName}" +
                         method.optimumName +
                         (method.mappedDesc ?: method.intermediaryDesc.mapFieldIntermediaryDescToNamed(mappings)) +
-                        "```"
+                        "`"
             }
 
             if (namespace.supportsAT()) {
                 text += "\n"
 
-                text += "**Access Transformer** ```public" + clazz.optimumName.replace('/', '.') +
+                text += "**Access Transformer** `public" + clazz.optimumName.replace('/', '.') +
                         method.intermediaryName +
                         method.obfDesc.merged!!.mapObfDescToNamed(mappings) +
-                        " # ${method.optimumName}```"
+                        " # ${method.optimumName}`"
             } else if (namespace.supportsAW()) {
                 text += "\n"
 
-                text += "**Access Widener** ```accessible method ${clazz.optimumName} ${method.optimumName} " +
+                text += "**Access Widener** `accessible method ${clazz.optimumName} ${method.optimumName} " +
                         (method.mappedDesc ?: method.intermediaryDesc.mapFieldIntermediaryDescToNamed(mappings)) +
-                        "```"
+                        "`"
             }
 
             text
