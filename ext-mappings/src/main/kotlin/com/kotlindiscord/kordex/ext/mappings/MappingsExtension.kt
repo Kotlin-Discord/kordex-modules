@@ -17,6 +17,7 @@ import com.kotlindiscord.kordex.ext.mappings.utils.fieldsToPages
 import com.kotlindiscord.kordex.ext.mappings.utils.linkie.*
 import com.kotlindiscord.kordex.ext.mappings.utils.methodsToPages
 import dev.kord.core.behavior.channel.withTyping
+import dev.kord.core.event.message.MessageCreateEvent
 import me.shedaniel.linkie.MappingsContainer
 import me.shedaniel.linkie.MappingsProvider
 import me.shedaniel.linkie.Namespace
@@ -32,7 +33,10 @@ private const val VERSION_CHUNK_SIZE = 10
 class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
     companion object {
         /** Mappings configuration object. **/
-        var config: MappingsConfigAdapter = TomlMappingsConfig()
+        private var config: MappingsConfigAdapter = TomlMappingsConfig()
+
+        /** Checks to apply to each command. **/
+        private var checks: MutableList<suspend (String) -> (suspend (MessageCreateEvent) -> Boolean)> = mutableListOf()
 
         /**
          * Call this before your bot starts to change the configuration adapter used by this extension.
@@ -40,6 +44,19 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
         fun configure(configObject: MappingsConfigAdapter) {
             config = configObject
         }
+
+        /**
+         * Call this before your bot starts to add a check that will be run against every command.
+         *
+         * The function/lambda passed should take a [String] - the name of the command being checked - and return
+         * a function taking a [MessageCreateEvent] and returning a [Boolean]. The returned function should return
+         * `true` if the command should execute, and `false` if it shouldn't, using the command name and event as
+         * context.
+         *
+         * Note that all custom checks will be run **BEFORE** checks that are specified in the configuration.
+         */
+        fun addCheck(check: suspend (String) -> (suspend (MessageCreateEvent) -> Boolean)) =
+            checks.add(check)
     }
 
     private val logger = KotlinLogging.logger { }
@@ -104,6 +121,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
             aliases = arrayOf("c")
 
+            check(customChecks(name))
             check(categoryCheck, channelCheck, guildCheck)  // Default checks
             signature(::GenericArguments)
 
@@ -140,6 +158,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
             aliases = arrayOf("f")
 
+            check(customChecks(name))
             check(categoryCheck, channelCheck, guildCheck)  // Default checks
             signature(::GenericArguments)
 
@@ -176,6 +195,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
             aliases = arrayOf("m")
 
+            check(customChecks(name))
             check(categoryCheck, channelCheck, guildCheck)  // Default checks
             signature(::GenericArguments)
 
@@ -203,6 +223,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
                         "For more information or a list of versions for MCP mappings, you can use the `mcp` command."
 
+                check(customChecks(name))
                 check(categoryCheck, channelCheck, guildCheck)  // Default checks
                 signature(::MCPArguments)
 
@@ -225,6 +246,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
                         "For more information or a list of versions for MCP mappings, you can use the `mcp` command."
 
+                check(customChecks(name))
                 check(categoryCheck, channelCheck, guildCheck)  // Default checks
                 signature(::MCPArguments)
 
@@ -247,6 +269,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
                         "For more information or a list of versions for MCP mappings, you can use the `mcp` command."
 
+                check(customChecks(name))
                 check(categoryCheck, channelCheck, guildCheck)  // Default checks
                 signature(::MCPArguments)
 
@@ -277,6 +300,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                         "For more information or a list of versions for Mojang mappings, you can use the `mojang` " +
                         "command."
 
+                check(customChecks(name))
                 check(categoryCheck, channelCheck, guildCheck)  // Default checks
                 signature(::MojangArguments)
 
@@ -301,6 +325,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                         "For more information or a list of versions for Mojang mappings, you can use the `mojang` " +
                         "command."
 
+                check(customChecks(name))
                 check(categoryCheck, channelCheck, guildCheck)  // Default checks
                 signature(::MojangArguments)
 
@@ -325,6 +350,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                         "For more information or a list of versions for Mojang mappings, you can use the `mojang` " +
                         "command."
 
+                check(customChecks(name))
                 check(categoryCheck, channelCheck, guildCheck)  // Default checks
                 signature(::MojangArguments)
 
@@ -358,6 +384,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                         "For more information or a list of versions for Mojang mappings, you can use the `yarn` " +
                         "command."
 
+                check(customChecks(name))
                 check(categoryCheck, channelCheck, guildCheck)  // Default checks
                 signature(::YarnArguments)
 
@@ -385,6 +412,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                         "For more information or a list of versions for Mojang mappings, you can use the `yarn` " +
                         "command."
 
+                check(customChecks(name))
                 check(categoryCheck, channelCheck, guildCheck)  // Default checks
                 signature(::YarnArguments)
 
@@ -412,6 +440,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                         "For more information or a list of versions for Mojang mappings, you can use the `yarn` " +
                         "command."
 
+                check(customChecks(name))
                 check(categoryCheck, channelCheck, guildCheck)  // Default checks
                 signature(::YarnArguments)
 
@@ -437,6 +466,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
                 description = "Get information and a list of supported versions for MCP mappings."
 
+                check(customChecks(name))
                 check(categoryCheck, channelCheck, guildCheck)  // Default checks
 
                 action {
@@ -483,6 +513,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
                 description = "Get information and a list of supported versions for Mojang mappings."
 
+                check(customChecks(name))
                 check(categoryCheck, channelCheck, guildCheck)  // Default checks
 
                 action {
@@ -528,6 +559,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
                 description = "Get information and a list of supported versions for Yarn mappings."
 
+                check(customChecks(name))
                 check(categoryCheck, channelCheck, guildCheck)  // Default checks
 
                 action {
@@ -747,6 +779,15 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
         )
 
         paginator.send()
+    }
+
+    private suspend fun customChecks(command: String): suspend (MessageCreateEvent) -> Boolean {
+        val allChecks = checks.map { it.invoke(command) }
+
+        suspend fun inner(event: MessageCreateEvent): Boolean =
+            allChecks.all { it.invoke(event) }
+
+        return ::inner
     }
 
     private suspend fun getNamespaceNames(suffix: String? = null) =
