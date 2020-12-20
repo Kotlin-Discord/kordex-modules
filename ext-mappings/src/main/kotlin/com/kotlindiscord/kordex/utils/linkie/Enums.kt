@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.kotlindiscord.kordex.utils
+package com.kotlindiscord.kordex.utils.linkie
 
 enum class QueryDefinition {
     INTERMEDIARY,

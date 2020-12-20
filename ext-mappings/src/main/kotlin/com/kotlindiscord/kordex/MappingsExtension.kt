@@ -5,7 +5,8 @@ import com.kotlindiscord.kord.extensions.Paginator
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.utils.respond
 import com.kotlindiscord.kordex.arguments.GenericArguments
-import com.kotlindiscord.kordex.utils.*
+import com.kotlindiscord.kordex.utils.linkie.*
+import com.kotlindiscord.kordex.utils.methodsToPages
 import dev.kord.core.behavior.channel.withTyping
 import me.shedaniel.linkie.MappingsProvider
 import me.shedaniel.linkie.Namespaces
@@ -22,7 +23,6 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
         Namespaces.init(
             MCPNamespace,
             MojangNamespace,
-            PlasmaNamespace,
             YarnNamespace,
         )
     }
@@ -31,8 +31,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
         "y" to Namespaces["yarn"],
         "mcp" to Namespaces["mcp"],
         "mm" to Namespaces["mojang"],
-        "mo" to Namespaces["mojang"],
-        "p" to Namespaces["plasma"],
+        "mo" to Namespaces["mojang"]
     )
 
     override suspend fun setup() {
@@ -51,13 +50,11 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
             signature(::GenericArguments)
 
             action {
-                val args = parse(::GenericArguments)
+                val args: GenericArguments
 
-                message.respond(
-                    "Namespace: `${args.ns.id}` with ${args.ns.getAllVersions().size} versions"
-                )
-
-                args.ns.getAllSortedVersions().map { println(it) }
+                message.channel.withTyping {
+                    args = parse(::GenericArguments)
+                }
 
                 val provider = if (args.version == null) {
                     MappingsProvider.empty(args.ns)
@@ -71,13 +68,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                 )
 
                 val query = args.query.replace(".", "/")
-                val nsProvider = args.ns.getProvider(provider.version!!)
-                val pages = mutableListOf<String>()
-
-                val hasClass = query.contains("/")
-                val hasWildcard =
-                    (hasClass && query.substring(0, query.lastIndexOf("/")).onlyClass() == "*") ||
-                            query.onlyClass() == "*"
+                var pages: List<String>
 
                 message.channel.withTyping {
                     val result = MappingsQuery.queryMethods(
@@ -85,24 +76,20 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                             provider = provider,
                             searchKey = query
                         )
-                    ).map { it.map { inner -> inner.value }.toList() }
+                    )
 
-                    result.value.chunked(10).forEach {
-                        var page = ""
-
-                        it.forEach { (parent, method) ->
-                            page += method.obfName.buildString(" => ") +
-                                    method.intermediaryName +
-                                    method.mappedName.mapIfNotNullOrNotEquals(method.intermediaryName) { name -> "=> `$name`" } +
-                                    "\n"
-                        }
-
-                        pages.add(page)
-                    }
+                    pages = methodsToPages(args.ns, provider.get(), result)
                 }
 
+                val meta = provider.get()
+
                 val paginator = Paginator(
-                    bot, message.channel, "Mappings", pages, message.author, keepEmbed = true
+                    bot,
+                    message.channel,
+                    "List of ${meta.name} methods: ${meta.version}",
+                    pages,
+                    message.author,
+                    keepEmbed = true
                 )
 
                 paginator.send()

@@ -16,7 +16,19 @@ class MappingsVersionConverter(
         val namespace = namespaceGetter.invoke()
 
         if (arg in namespace.getAllVersions()) {
-            this.parsed = namespace[arg]!!
+            val version =  namespace[arg]
+
+            if (version == null) {
+                val created = namespace.createAndAdd(arg)
+
+                if (created != null) {
+                    this.parsed = created
+                } else {
+                    throw ParseException("Invalid ${namespace.id} version: `$arg`")
+                }
+            } else {
+                this.parsed = version
+            }
 
             return true
         }

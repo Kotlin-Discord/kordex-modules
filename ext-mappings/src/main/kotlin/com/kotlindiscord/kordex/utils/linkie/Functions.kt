@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package com.kotlindiscord.kordex.utils
+package com.kotlindiscord.kordex.utils.linkie
 
 import me.shedaniel.linkie.*
+import me.shedaniel.linkie.utils.remapMethodDescriptor
 
 infix fun <T> T.hold(score: Double): ResultHolder<T> = ResultHolder(this, score)
 
@@ -78,3 +79,6 @@ inline fun String?.mapIfNotNullOrNotEquals(other: String, mapper: (String) -> St
         this == other -> null
         else -> mapper(this)
     }
+
+fun String.mapObfDescToNamed(container: MappingsContainer): String =
+    remapMethodDescriptor { container.getClassByObfName(it)?.intermediaryName ?: it }
