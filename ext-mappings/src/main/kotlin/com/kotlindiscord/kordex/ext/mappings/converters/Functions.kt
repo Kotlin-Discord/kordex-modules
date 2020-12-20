@@ -1,4 +1,4 @@
-package com.kotlindiscord.kordex.converters
+package com.kotlindiscord.kordex.ext.mappings.converters
 
 import com.kotlindiscord.kord.extensions.commands.parser.Arguments
 import me.shedaniel.linkie.Namespace

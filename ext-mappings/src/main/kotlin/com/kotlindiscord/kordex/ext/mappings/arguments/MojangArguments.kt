@@ -1,8 +1,8 @@
-package com.kotlindiscord.kordex.arguments
+package com.kotlindiscord.kordex.ext.mappings.arguments
 
 import com.kotlindiscord.kord.extensions.commands.converters.string
 import com.kotlindiscord.kord.extensions.commands.parser.Arguments
-import com.kotlindiscord.kordex.converters.optionalMappingsVersion
+import com.kotlindiscord.kordex.ext.mappings.converters.optionalMappingsVersion
 import me.shedaniel.linkie.namespaces.MojangNamespace
 
 /** Arguments for Mojang mappings lookup commands. **/

@@ -1,18 +1,18 @@
-package com.kotlindiscord.kordex
+package com.kotlindiscord.kordex.ext.mappings
 
 import com.kotlindiscord.kord.extensions.ExtensibleBot
 import com.kotlindiscord.kord.extensions.Paginator
 import com.kotlindiscord.kord.extensions.commands.CommandContext
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.utils.respond
-import com.kotlindiscord.kordex.arguments.GenericArguments
-import com.kotlindiscord.kordex.arguments.MCPArguments
-import com.kotlindiscord.kordex.arguments.MojangArguments
-import com.kotlindiscord.kordex.arguments.YarnArguments
-import com.kotlindiscord.kordex.utils.classesToPages
-import com.kotlindiscord.kordex.utils.fieldsToPages
-import com.kotlindiscord.kordex.utils.linkie.*
-import com.kotlindiscord.kordex.utils.methodsToPages
+import com.kotlindiscord.kordex.ext.mappings.arguments.GenericArguments
+import com.kotlindiscord.kordex.ext.mappings.arguments.MCPArguments
+import com.kotlindiscord.kordex.ext.mappings.arguments.MojangArguments
+import com.kotlindiscord.kordex.ext.mappings.arguments.YarnArguments
+import com.kotlindiscord.kordex.ext.mappings.utils.classesToPages
+import com.kotlindiscord.kordex.ext.mappings.utils.fieldsToPages
+import com.kotlindiscord.kordex.ext.mappings.utils.linkie.*
+import com.kotlindiscord.kordex.ext.mappings.utils.methodsToPages
 import dev.kord.core.behavior.channel.withTyping
 import me.shedaniel.linkie.MappingsContainer
 import me.shedaniel.linkie.MappingsProvider

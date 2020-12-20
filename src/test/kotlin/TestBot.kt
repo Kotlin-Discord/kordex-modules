@@ -1,5 +1,5 @@
 import com.kotlindiscord.kord.extensions.ExtensibleBot
-import com.kotlindiscord.kordex.MappingsExtension
+import com.kotlindiscord.kordex.ext.mappings.MappingsExtension
 
 val bot = ExtensibleBot(
     token = System.getenv("TOKEN"),

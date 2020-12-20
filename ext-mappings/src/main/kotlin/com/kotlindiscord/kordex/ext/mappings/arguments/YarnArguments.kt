@@ -1,10 +1,10 @@
-package com.kotlindiscord.kordex.arguments
+package com.kotlindiscord.kordex.ext.mappings.arguments
 
 import com.kotlindiscord.kord.extensions.commands.converters.optionalEnum
 import com.kotlindiscord.kord.extensions.commands.converters.string
 import com.kotlindiscord.kord.extensions.commands.parser.Arguments
-import com.kotlindiscord.kordex.YarnChannels
-import com.kotlindiscord.kordex.converters.optionalMappingsVersion
+import com.kotlindiscord.kordex.ext.mappings.YarnChannels
+import com.kotlindiscord.kordex.ext.mappings.converters.optionalMappingsVersion
 import me.shedaniel.linkie.namespaces.YarnNamespace
 
 /** Arguments for Yarn mappings lookup commands. **/

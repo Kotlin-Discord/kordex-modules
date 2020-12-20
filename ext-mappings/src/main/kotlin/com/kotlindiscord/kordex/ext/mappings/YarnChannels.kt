@@ -1,4 +1,4 @@
-package com.kotlindiscord.kordex
+package com.kotlindiscord.kordex.ext.mappings
 
 /**
  * Enum representing available Yarn channels.

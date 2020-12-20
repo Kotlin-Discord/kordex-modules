@@ -32,7 +32,7 @@
     "UseIfInsteadOfWhen",
 )
 
-package com.kotlindiscord.kordex.utils.linkie
+package com.kotlindiscord.kordex.ext.mappings.utils.linkie
 
 import me.shedaniel.linkie.*
 import me.shedaniel.linkie.utils.*

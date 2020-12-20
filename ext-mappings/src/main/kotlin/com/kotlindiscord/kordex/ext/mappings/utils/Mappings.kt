@@ -1,6 +1,6 @@
-package com.kotlindiscord.kordex.utils
+package com.kotlindiscord.kordex.ext.mappings.utils
 
-import com.kotlindiscord.kordex.utils.linkie.*
+import com.kotlindiscord.kordex.ext.mappings.utils.linkie.*
 import me.shedaniel.linkie.MappingsContainer
 import me.shedaniel.linkie.Namespace
 import me.shedaniel.linkie.utils.mapFieldIntermediaryDescToNamed

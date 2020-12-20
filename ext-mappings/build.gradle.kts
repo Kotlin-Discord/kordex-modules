@@ -1,4 +1,4 @@
-group = rootProject.group
+group = "${rootProject.group}.ext.mappings"
 version = "1.0.0-SNAPSHOT"
 
 dependencies {

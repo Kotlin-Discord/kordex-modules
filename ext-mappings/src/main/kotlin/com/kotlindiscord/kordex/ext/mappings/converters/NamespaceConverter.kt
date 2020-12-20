@@ -1,4 +1,4 @@
-package com.kotlindiscord.kordex.converters
+package com.kotlindiscord.kordex.ext.mappings.converters
 
 import com.kotlindiscord.kord.extensions.ExtensibleBot
 import com.kotlindiscord.kord.extensions.ParseException
