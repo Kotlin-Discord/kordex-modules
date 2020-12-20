@@ -76,6 +76,10 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
         val mojangEnabled = enabledNamespaces.contains("mojang")
         val yarnEnabled = enabledNamespaces.contains("yarn")
 
+        val categoryCheck = allowedCategory(config.getAllowedCategories(), config.getBannedCategories())
+        val channelCheck = allowedGuild(config.getAllowedChannels(), config.getBannedChannels())
+        val guildCheck = allowedGuild(config.getAllowedGuilds(), config.getBannedGuilds())
+
         // region: Generic mappings lookups
 
         // Class
@@ -99,6 +103,8 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                     "commands: $namespaceNames."
 
             aliases = arrayOf("c")
+
+            check(categoryCheck, channelCheck, guildCheck)  // Default checks
             signature(::GenericArguments)
 
             action {
@@ -133,6 +139,8 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                     "commands: $namespaceNames."
 
             aliases = arrayOf("f")
+
+            check(categoryCheck, channelCheck, guildCheck)  // Default checks
             signature(::GenericArguments)
 
             action {
@@ -168,6 +176,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
             aliases = arrayOf("m")
 
+            check(categoryCheck, channelCheck, guildCheck)  // Default checks
             signature(::GenericArguments)
 
             action {
@@ -194,6 +203,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
                         "For more information or a list of versions for MCP mappings, you can use the `mcp` command."
 
+                check(categoryCheck, channelCheck, guildCheck)  // Default checks
                 signature(::MCPArguments)
 
                 action {
@@ -215,6 +225,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
                         "For more information or a list of versions for MCP mappings, you can use the `mcp` command."
 
+                check(categoryCheck, channelCheck, guildCheck)  // Default checks
                 signature(::MCPArguments)
 
                 action {
@@ -236,6 +247,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
                         "For more information or a list of versions for MCP mappings, you can use the `mcp` command."
 
+                check(categoryCheck, channelCheck, guildCheck)  // Default checks
                 signature(::MCPArguments)
 
                 action {
@@ -265,6 +277,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                         "For more information or a list of versions for Mojang mappings, you can use the `mojang` " +
                         "command."
 
+                check(categoryCheck, channelCheck, guildCheck)  // Default checks
                 signature(::MojangArguments)
 
                 action {
@@ -288,6 +301,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                         "For more information or a list of versions for Mojang mappings, you can use the `mojang` " +
                         "command."
 
+                check(categoryCheck, channelCheck, guildCheck)  // Default checks
                 signature(::MojangArguments)
 
                 action {
@@ -311,6 +325,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                         "For more information or a list of versions for Mojang mappings, you can use the `mojang` " +
                         "command."
 
+                check(categoryCheck, channelCheck, guildCheck)  // Default checks
                 signature(::MojangArguments)
 
                 action {
@@ -343,6 +358,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                         "For more information or a list of versions for Mojang mappings, you can use the `yarn` " +
                         "command."
 
+                check(categoryCheck, channelCheck, guildCheck)  // Default checks
                 signature(::YarnArguments)
 
                 action {
@@ -369,6 +385,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                         "For more information or a list of versions for Mojang mappings, you can use the `yarn` " +
                         "command."
 
+                check(categoryCheck, channelCheck, guildCheck)  // Default checks
                 signature(::YarnArguments)
 
                 action {
@@ -395,6 +412,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                         "For more information or a list of versions for Mojang mappings, you can use the `yarn` " +
                         "command."
 
+                check(categoryCheck, channelCheck, guildCheck)  // Default checks
                 signature(::YarnArguments)
 
                 action {
@@ -418,6 +436,8 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                 name = "mcp"
 
                 description = "Get information and a list of supported versions for MCP mappings."
+
+                check(categoryCheck, channelCheck, guildCheck)  // Default checks
 
                 action {
                     val defaultVersion = MCPNamespace.getDefaultVersion()
@@ -463,6 +483,8 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
                 description = "Get information and a list of supported versions for Mojang mappings."
 
+                check(categoryCheck, channelCheck, guildCheck)  // Default checks
+
                 action {
                     val defaultVersion = MojangNamespace.getDefaultVersion()
                     val allVersions = MojangNamespace.getAllSortedVersions()
@@ -505,6 +527,8 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                 name = "yarn"
 
                 description = "Get information and a list of supported versions for Yarn mappings."
+
+                check(categoryCheck, channelCheck, guildCheck)  // Default checks
 
                 action {
                     val defaultVersion = YarnNamespace.getDefaultVersion()
