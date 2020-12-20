@@ -20,6 +20,8 @@ import me.shedaniel.linkie.Namespace
 import me.shedaniel.linkie.Namespaces
 import me.shedaniel.linkie.namespaces.*
 
+private const val VERSION_CHUNK_SIZE = 10
+
 /**
  * Extension providing Minecraft mappings lookups on Discord.
  */
@@ -33,13 +35,6 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
             YarnNamespace,
         )
     }
-
-    private val namespacePrefixes = mapOf(
-        "mcp" to Namespaces["mcp"],
-        "mm" to Namespaces["mojang"],
-        "mo" to Namespaces["mojang"],
-        "y" to Namespaces["yarn"]
-    )
 
     override suspend fun setup() {
         // region: Generic mappings lookups
@@ -289,7 +284,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                 val defaultVersion = MCPNamespace.getDefaultVersion()
                 val allVersions = MCPNamespace.getAllSortedVersions()
 
-                val pages = allVersions.chunked(10).map {
+                val pages = allVersions.chunked(VERSION_CHUNK_SIZE).map {
                     it.joinToString("\n") { version ->
                         if (version == defaultVersion) {
                             "**» $version** (Default)"
@@ -329,7 +324,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                 val defaultVersion = MojangNamespace.getDefaultVersion()
                 val allVersions = MojangNamespace.getAllSortedVersions()
 
-                val pages = allVersions.chunked(10).map {
+                val pages = allVersions.chunked(VERSION_CHUNK_SIZE).map {
                     it.joinToString("\n") { version ->
                         if (version == defaultVersion) {
                             "**» $version** (Default)"
@@ -371,7 +366,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                 val defaultPatchworkVersion = YarnNamespace.getDefaultVersion { YarnChannels.PATCHWORK.str }
                 val allVersions = YarnNamespace.getAllSortedVersions()
 
-                val pages = allVersions.chunked(10).map {
+                val pages = allVersions.chunked(VERSION_CHUNK_SIZE).map {
                     it.joinToString("\n") { version ->
                         when (version) {
                             defaultVersion -> "**» $version** (Default)"
