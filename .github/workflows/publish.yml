@@ -1,9 +1,7 @@
-name: CI
+name: Publish
 
 on:
   push:
-    branches:
-      - '**'
     branches-ignore:
       - root
 
