@@ -13,5 +13,5 @@ This repo is in a very early state. Watch this space!
 
 Please note that some extensions may have additional licensing notes and requirements. This information will always be provided in the README for each individual extension - we suggest you always read the whole document before making use of one!
 
-* [`ext-mappings`](ext-mappings): Minecraft mappings extension, for Minecraft modders - 
+* **[ext-mappings](ext-mappings):** Minecraft mappings extension, for Minecraft modders - 
   [powered by Linkie](https://github.com/shedaniel/linkie-core).

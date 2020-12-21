@@ -35,7 +35,6 @@ restrict the commands in any manner.
 This extension provides a number of commands for use on Discord.
 
 * Commands for retrieving information about mappings namespaces: `mcp`, `mojang` and `yarn`
-* Generic mappings lookup commands: `class`, `field` and `method`
 * MCP-specific lookup commands: `mcpc`, `mcpf` and `mcpm`
 * Mojang-specific lookup commands: `mmc`, `mmf` and `mmm`
 * Yarn-specific lookup commands: `yc`, `yf` and `ym`
@@ -69,7 +68,8 @@ following configuration keys are available:
   other guilds. This setting takes priority over `guilds.banned`.
 * `guilds.banned`: List of guilds mappings commands may **not** be run within. When set, mappings commands may not be
   run within the given guilds.
-* `settings.namespaces`: List of enabled namespaces. Currently, only `mcp`, `mojang` and `yarn` are supported.
+* `settings.namespaces`: List of enabled namespaces. Currently, only `mcp`, `mojang` and `yarn` are supported, and
+  they will all be enabled by default.
 
 **Please note:** Mappings commands will always function when sent to the bot via a private message. However, only the
 configured namespaces will be available - the user will not be able to query disabled namespaces.
