@@ -104,7 +104,7 @@ subprojects {
             maven {
                 name = "KotDis"
 
-                url = if (project.version.toString().contains("SNAPSHOT")) {
+                url = if (this@subprojects.version.toString().contains("SNAPSHOT")) {
                     uri("https://maven.kotlindiscord.com/repository/maven-snapshots/")
                 } else {
                     uri("https://maven.kotlindiscord.com/repository/maven-releases/")
@@ -118,7 +118,7 @@ subprojects {
                         ?: System.getenv("KOTLIN_DISCORD_PASSWORD")
                 }
 
-                version = project.version
+                version = this@subprojects.version
             }
         }
 
