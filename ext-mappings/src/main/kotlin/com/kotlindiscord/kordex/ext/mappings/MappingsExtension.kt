@@ -5,12 +5,13 @@ import com.kotlindiscord.kord.extensions.Paginator
 import com.kotlindiscord.kord.extensions.commands.CommandContext
 import com.kotlindiscord.kord.extensions.extensions.Extension
 import com.kotlindiscord.kord.extensions.utils.respond
-import com.kotlindiscord.kordex.ext.mappings.arguments.GenericArguments
 import com.kotlindiscord.kordex.ext.mappings.arguments.MCPArguments
 import com.kotlindiscord.kordex.ext.mappings.arguments.MojangArguments
 import com.kotlindiscord.kordex.ext.mappings.arguments.YarnArguments
 import com.kotlindiscord.kordex.ext.mappings.configuration.MappingsConfigAdapter
 import com.kotlindiscord.kordex.ext.mappings.configuration.TomlMappingsConfig
+import com.kotlindiscord.kordex.ext.mappings.enums.Channels
+import com.kotlindiscord.kordex.ext.mappings.enums.YarnChannels
 import com.kotlindiscord.kordex.ext.mappings.exceptions.UnsupportedNamespaceException
 import com.kotlindiscord.kordex.ext.mappings.utils.classesToPages
 import com.kotlindiscord.kordex.ext.mappings.utils.fieldsToPages
@@ -84,11 +85,6 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
         Namespaces.init(*namespaces.toTypedArray())
 
-        val namespaceNames = getNamespaceNames()
-        val classCommands = getNamespaceCommands("c")
-        val fieldCommands = getNamespaceCommands("f")
-        val methodCommands = getNamespaceCommands("m")
-
         val mcpEnabled = enabledNamespaces.contains("mcp")
         val mojangEnabled = enabledNamespaces.contains("mojang")
         val yarnEnabled = enabledNamespaces.contains("yarn")
@@ -96,121 +92,6 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
         val categoryCheck = allowedCategory(config.getAllowedCategories(), config.getBannedCategories())
         val channelCheck = allowedGuild(config.getAllowedChannels(), config.getBannedChannels())
         val guildCheck = allowedGuild(config.getAllowedGuilds(), config.getBannedGuilds())
-
-        // region: Generic mappings lookups
-
-        // Class
-        command {
-            name = "class"
-
-            description = "Look up mappings info for a class, given a specific mappings namespace.\n\n" +
-
-                    "**Namespaces:** $namespaceNames\n" +
-
-                    if (yarnEnabled) {
-                        "**Yarn channels:** " + YarnChannels.values().joinToString(", ") { "`${it.str}`" }
-                    } else {
-                        ""
-                    } + "\n\n" +
-
-                    "Instead of specifying a mappings namespace here, you can use the following commands to query " +
-                    "each namespace directly: $classCommands.\n\n" +
-
-                    "For more information or a list of versions for each namespace, you can use the following " +
-                    "commands: $namespaceNames."
-
-            aliases = arrayOf("c")
-
-            check(customChecks(name))
-            check(categoryCheck, channelCheck, guildCheck)  // Default checks
-            signature(::GenericArguments)
-
-            action {
-                val args: GenericArguments
-
-                message.channel.withTyping {
-                    args = parse(::GenericArguments)
-                }
-
-                queryClasses(args.ns, args.query, args.version, args.yarnChannel)
-            }
-        }
-
-        // Field
-        command {
-            name = "field"
-
-            description = "Look up mappings info for a field, given a specific mappings namespace.\n\n" +
-
-                    "**Namespaces:** $namespaceNames\n" +
-
-                    if (yarnEnabled) {
-                        "**Yarn channels:** " + YarnChannels.values().joinToString(", ") { "`${it.str}`" }
-                    } else {
-                        ""
-                    } + "\n\n" +
-
-                    "Instead of specifying a mappings namespace here, you can use the following commands to query " +
-                    "each namespace directly: $fieldCommands.\n\n" +
-
-                    "For more information or a list of versions for each namespace, you can use the following " +
-                    "commands: $namespaceNames."
-
-            aliases = arrayOf("f")
-
-            check(customChecks(name))
-            check(categoryCheck, channelCheck, guildCheck)  // Default checks
-            signature(::GenericArguments)
-
-            action {
-                val args: GenericArguments
-
-                message.channel.withTyping {
-                    args = parse(::GenericArguments)
-                }
-
-                queryFields(args.ns, args.query, args.version, args.yarnChannel)
-            }
-        }
-
-        // Method
-        command {
-            name = "method"
-
-            description = "Look up mappings info for a method, given a specific mappings namespace.\n\n" +
-
-                    "**Namespaces:** $namespaceNames\n" +
-
-                    if (yarnEnabled) {
-                        "**Yarn channels:** " + YarnChannels.values().joinToString(", ") { "`${it.str}`" }
-                    } else {
-                        ""
-                    } + "\n\n" +
-
-                    "Instead of specifying a mappings namespace here, you can use the following commands to query " +
-                    "each namespace directly: $methodCommands.\n\n" +
-
-                    "For more information or a list of versions for each namespace, you can use the following " +
-                    "commands: $namespaceNames."
-
-            aliases = arrayOf("m")
-
-            check(customChecks(name))
-            check(categoryCheck, channelCheck, guildCheck)  // Default checks
-            signature(::GenericArguments)
-
-            action {
-                val args: GenericArguments
-
-                message.channel.withTyping {
-                    args = parse(::GenericArguments)
-                }
-
-                queryMethods(args.ns, args.query, args.version, args.yarnChannel)
-            }
-        }
-
-        // endregion
 
         // region: MCP mappings lookups
 
@@ -297,6 +178,9 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
                 description = "Look up Mojang mappings info for a class.\n\n" +
 
+                        "**Channels:** " + Channels.values().joinToString(", ") { "`${it.str}`" } +
+                        "\n\n" +
+
                         "For more information or a list of versions for Mojang mappings, you can use the `mojang` " +
                         "command."
 
@@ -311,7 +195,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                         args = parse(::MojangArguments)
                     }
 
-                    queryClasses(MojangNamespace, args.query, args.version)
+                    queryClasses(MojangNamespace, args.query, args.version, args.channel?.str)
                 }
             }
 
@@ -322,6 +206,9 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
                 description = "Look up Mojang mappings info for a field.\n\n" +
 
+                        "**Channels:** " + Channels.values().joinToString(", ") { "`${it.str}`" } +
+                        "\n\n" +
+
                         "For more information or a list of versions for Mojang mappings, you can use the `mojang` " +
                         "command."
 
@@ -336,7 +223,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                         args = parse(::MojangArguments)
                     }
 
-                    queryFields(MojangNamespace, args.query, args.version)
+                    queryFields(MojangNamespace, args.query, args.version, args.channel?.str)
                 }
             }
 
@@ -347,6 +234,9 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
                 description = "Look up Mojang mappings info for a method.\n\n" +
 
+                        "**Channels:** " + Channels.values().joinToString(", ") { "`${it.str}`" } +
+                        "\n\n" +
+
                         "For more information or a list of versions for Mojang mappings, you can use the `mojang` " +
                         "command."
 
@@ -361,7 +251,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                         args = parse(::MojangArguments)
                     }
 
-                    queryMethods(MojangNamespace, args.query, args.version)
+                    queryMethods(MojangNamespace, args.query, args.version, args.channel?.str)
                 }
             }
         }
@@ -378,10 +268,10 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
                 description = "Look up Yarn mappings info for a class.\n\n" +
 
-                        "**Yarn channels:** " + YarnChannels.values().joinToString(", ") { "`${it.str}`" } +
+                        "**Channels:** " + YarnChannels.values().joinToString(", ") { "`${it.str}`" } +
                         "\n\n" +
 
-                        "For more information or a list of versions for Mojang mappings, you can use the `yarn` " +
+                        "For more information or a list of versions for Yarn mappings, you can use the `yarn` " +
                         "command."
 
                 check(customChecks(name))
@@ -395,7 +285,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                         args = parse(::YarnArguments)
                     }
 
-                    queryClasses(YarnNamespace, args.query, args.version, args.yarnChannel)
+                    queryClasses(YarnNamespace, args.query, args.version, args.channel?.str)
                 }
             }
 
@@ -406,10 +296,10 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
                 description = "Look up Yarn mappings info for a field.\n\n" +
 
-                        "**Yarn channels:** " + YarnChannels.values().joinToString(", ") { "`${it.str}`" } +
+                        "**Channels:** " + YarnChannels.values().joinToString(", ") { "`${it.str}`" } +
                         "\n\n" +
 
-                        "For more information or a list of versions for Mojang mappings, you can use the `yarn` " +
+                        "For more information or a list of versions for Yarn mappings, you can use the `yarn` " +
                         "command."
 
                 check(customChecks(name))
@@ -423,7 +313,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                         args = parse(::YarnArguments)
                     }
 
-                    queryFields(YarnNamespace, args.query, args.version, args.yarnChannel)
+                    queryFields(YarnNamespace, args.query, args.version, args.channel?.str)
                 }
             }
 
@@ -434,10 +324,10 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
                 description = "Look up Yarn mappings info for a method.\n\n" +
 
-                        "**Yarn channels:** " + YarnChannels.values().joinToString(", ") { "`${it.str}`" } +
+                        "**Channels:** " + YarnChannels.values().joinToString(", ") { "`${it.str}`" } +
                         "\n\n" +
 
-                        "For more information or a list of versions for Mojang mappings, you can use the `yarn` " +
+                        "For more information or a list of versions for Yarn mappings, you can use the `yarn` " +
                         "command."
 
                 check(customChecks(name))
@@ -451,7 +341,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                         args = parse(::YarnArguments)
                     }
 
-                    queryMethods(YarnNamespace, args.query, args.version, args.yarnChannel)
+                    queryMethods(YarnNamespace, args.query, args.version, args.channel?.str)
                 }
             }
         }
@@ -488,6 +378,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                         "MCP mappings are available for queries across **${allVersions.size}** versions.\n\n" +
 
                                 "**Default version:** $defaultVersion\n" +
+                                "**Commands:** `mcpc`, `mcpf`, `mcpm`\n\n" +
 
                                 "For a full list of supported MCP versions, please view the rest of the pages."
                     )
@@ -534,7 +425,11 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                         0,
                         "Mojang mappings are available for queries across **${allVersions.size}** versions.\n\n" +
 
-                                "**Default version:** $defaultVersion\n" +
+                                "**Default version:** $defaultVersion\n\n" +
+
+                                "**Channels:** " + Channels.values().joinToString(", ") { "`${it.str}`" } +
+                                "\n" +
+                                "**Commands:** `mmc`, `mmf`, `mmm`\n\n" +
 
                                 "For a full list of supported Mojang versions, please view the rest of the pages."
                     )
@@ -566,6 +461,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                     val defaultVersion = YarnNamespace.getDefaultVersion()
                     val defaultLegacyVersion = YarnNamespace.getDefaultVersion { YarnChannels.LEGACY.str }
                     val defaultPatchworkVersion = YarnNamespace.getDefaultVersion { YarnChannels.PATCHWORK.str }
+                    val defaultSnapshotVersion = YarnNamespace.getDefaultVersion { YarnChannels.SNAPSHOT.str }
                     val allVersions = YarnNamespace.getAllSortedVersions()
 
                     val pages = allVersions.chunked(VERSION_CHUNK_SIZE).map {
@@ -574,6 +470,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                                 defaultVersion -> "**» $version** (Default)"
                                 defaultLegacyVersion -> "**» $version** (Default: Legacy)"
                                 defaultPatchworkVersion -> "**» $version** (Default: Patchwork)"
+                                defaultSnapshotVersion -> "**» $version** (Default: Snapshot)"
 
                                 else -> "**»** $version"
                             }
@@ -585,8 +482,14 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                         "Yarn mappings are available for queries across **${allVersions.size}** versions.\n\n" +
 
                                 "**Default version:** $defaultVersion\n" +
+                                "**Default snapshot version:** $defaultSnapshotVersion\n\n" +
+
                                 "**Default Legacy version:** $defaultLegacyVersion\n" +
                                 "**Default Patchwork version:** $defaultPatchworkVersion\n\n" +
+
+                                "**Channels:** " + YarnChannels.values().joinToString(", ") { "`${it.str}`" } +
+                                "\n" +
+                                "**Commands:** `yc`, `yf`, `ym`\n\n" +
 
                                 "For a full list of supported Yarn versions, please view the rest of the pages."
                     )
@@ -614,22 +517,23 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
         namespace: Namespace,
         givenQuery: String,
         version: MappingsContainer?,
-        yarnChannel: YarnChannels? = null
+        channel: String? = null
     ) {
-        if (namespace != YarnNamespace && yarnChannel != null) {
-            message.respond("You may only specify a Yarn channel when looking up Yarn mappings.")
-            return
-        }
-
         val provider = if (version == null) {
-            MappingsProvider.empty(namespace)
+            if (channel != null) {
+                namespace.getProvider(
+                    namespace.getDefaultVersion { channel }
+                )
+            } else {
+                MappingsProvider.empty(namespace)
+            }
         } else {
             namespace.getProvider(version.version)
         }
 
         provider.injectDefaultVersion(
             namespace.getDefaultProvider {
-                yarnChannel?.str ?: namespace.getDefaultMappingChannel()
+                channel ?: namespace.getDefaultMappingChannel()
             }
         )
 
@@ -671,22 +575,23 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
         namespace: Namespace,
         givenQuery: String,
         version: MappingsContainer?,
-        yarnChannel: YarnChannels? = null
+        channel: String? = null
     ) {
-        if (namespace != YarnNamespace && yarnChannel != null) {
-            message.respond("You may only specify a Yarn channel when looking up Yarn mappings.")
-            return
-        }
-
         val provider = if (version == null) {
-            MappingsProvider.empty(namespace)
+            if (channel != null) {
+                namespace.getProvider(
+                    namespace.getDefaultVersion { channel }
+                )
+            } else {
+                MappingsProvider.empty(namespace)
+            }
         } else {
             namespace.getProvider(version.version)
         }
 
         provider.injectDefaultVersion(
             namespace.getDefaultProvider {
-                yarnChannel?.str ?: namespace.getDefaultMappingChannel()
+                channel ?: namespace.getDefaultMappingChannel()
             }
         )
 
@@ -728,22 +633,23 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
         namespace: Namespace,
         givenQuery: String,
         version: MappingsContainer?,
-        yarnChannel: YarnChannels? = null
+        channel: String? = null
     ) {
-        if (namespace != YarnNamespace && yarnChannel != null) {
-            message.respond("You may only specify a Yarn channel when looking up Yarn mappings.")
-            return
-        }
-
         val provider = if (version == null) {
-            MappingsProvider.empty(namespace)
+            if (channel != null) {
+                namespace.getProvider(
+                    namespace.getDefaultVersion { channel }
+                )
+            } else {
+                MappingsProvider.empty(namespace)
+            }
         } else {
             namespace.getProvider(version.version)
         }
 
         provider.injectDefaultVersion(
             namespace.getDefaultProvider {
-                yarnChannel?.str ?: namespace.getDefaultMappingChannel()
+                channel ?: namespace.getDefaultMappingChannel()
             }
         )
 
@@ -789,20 +695,4 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
         return ::inner
     }
-
-    private suspend fun getNamespaceNames(suffix: String? = null) =
-        config.getEnabledNamespaces().joinToString(", ") { "`$it${suffix ?: ""}`" }
-
-    private suspend fun getNamespaceCommands(suffix: String) =
-        config.getEnabledNamespaces().joinToString(", ") {
-            val prefix = when (it) {
-                "mcp" -> "mcp"
-                "mojang" -> "mm"
-                "yarn" -> "y"
-
-                else -> ""
-            }
-
-            "`$prefix$suffix`"
-        }
 }

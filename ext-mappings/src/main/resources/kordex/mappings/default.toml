@@ -21,4 +21,4 @@ banned = []
 
 [settings]
 # Which namespaces to allow lookups for - only "mcp", "mojang" and "yarn" are currently supported.
-namespaces = ["yarn"]
+namespaces = ["mcp", "mojang", "yarn"]

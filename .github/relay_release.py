@@ -7,6 +7,8 @@ from urllib import request
 tag = os.environ["GITHUB_REF"]
 webhook_url = os.environ["WEBHOOK_URL"]
 
+print(f"Releasing tag: {tag}")
+
 url = f"https://api.github.com/repos/Kotlin-Discord/kordex-modules/releases/tags/{tag}"
 
 r = request.urlopen(url)

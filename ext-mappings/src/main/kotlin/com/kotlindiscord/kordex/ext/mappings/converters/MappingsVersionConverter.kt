@@ -14,6 +14,7 @@ class MappingsVersionConverter(
     private val namespaceGetter: suspend () -> Namespace
 ) : SingleConverter<MappingsContainer>() {
     override val signatureTypeString: String = "version"
+    override val showTypeInSignature: Boolean = false
 
     override suspend fun parse(arg: String, context: CommandContext, bot: ExtensibleBot): Boolean {
         val namespace = namespaceGetter.invoke()
