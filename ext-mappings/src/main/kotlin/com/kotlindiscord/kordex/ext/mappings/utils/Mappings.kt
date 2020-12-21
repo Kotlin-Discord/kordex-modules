@@ -24,7 +24,7 @@ fun classesToPages(
             text += "**Name:** `" +
                     clazz.obfName.buildString("` -> ") +
                     "`${clazz.intermediaryName}`" +
-                    clazz.mappedName.mapIfNotNullOrNotEquals(clazz.intermediaryName) { name -> " -> `$name`" }
+                    (clazz.mappedName.mapIfNotNullOrNotEquals(clazz.intermediaryName) { name -> " -> `$name`" } ?: "")
 
             text += "\n"
 
@@ -64,7 +64,7 @@ fun fieldsToPages(
             text += "**Name:** `" +
                     field.obfName.buildString("` -> ") +
                     "`${field.intermediaryName}`" +
-                    field.mappedName.mapIfNotNullOrNotEquals(field.intermediaryName) { name -> " -> `$name`" }
+                    (field.mappedName.mapIfNotNullOrNotEquals(field.intermediaryName) { name -> " -> `$name`" } ?: "")
 
             if (namespace.supportsFieldDescription()) {
                 text += "\n"
@@ -127,8 +127,8 @@ fun methodsToPages(
 
             text += "**Name:** `" +
                     method.obfName.buildString("` -> ") +
-                    "`" + method.intermediaryName + "`"
-            method.mappedName.mapIfNotNullOrNotEquals(method.intermediaryName) { name -> " -> `$name`" }
+                    "`" + method.intermediaryName + "`" +
+                    (method.mappedName.mapIfNotNullOrNotEquals(method.intermediaryName) { name -> " -> `$name`" } ?: "")
 
             text += "\n"
 
