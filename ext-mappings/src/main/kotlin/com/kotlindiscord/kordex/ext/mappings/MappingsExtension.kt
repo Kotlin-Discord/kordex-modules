@@ -1,9 +1,12 @@
 package com.kotlindiscord.kordex.ext.mappings
 
 import com.kotlindiscord.kord.extensions.ExtensibleBot
-import com.kotlindiscord.kord.extensions.Paginator
 import com.kotlindiscord.kord.extensions.commands.CommandContext
 import com.kotlindiscord.kord.extensions.extensions.Extension
+import com.kotlindiscord.kord.extensions.pagination.EXPAND_EMOJI
+import com.kotlindiscord.kord.extensions.pagination.Paginator
+import com.kotlindiscord.kord.extensions.pagination.pages.Page
+import com.kotlindiscord.kord.extensions.pagination.pages.Pages
 import com.kotlindiscord.kord.extensions.utils.respond
 import com.kotlindiscord.kordex.ext.mappings.arguments.MCPArguments
 import com.kotlindiscord.kordex.ext.mappings.arguments.MojangArguments
@@ -28,6 +31,9 @@ import me.shedaniel.linkie.utils.QueryContext
 import mu.KotlinLogging
 
 private const val VERSION_CHUNK_SIZE = 10
+private const val PAGE_FOOTER = "Powered by Linkie"
+private const val PAGE_FOOTER_ICON =
+    "https://cdn.discordapp.com/attachments/789139884307775580/790887070334976020/linkie_arrow.png"
 
 /**
  * Extension providing Minecraft mappings lookups on Discord.
@@ -384,12 +390,25 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                                 "For a full list of supported MCP versions, please view the rest of the pages."
                     )
 
+                    val pagesObj = Pages()
+                    val pageTitle = "Mappings info: MCP"
+
+                    pages.forEach {
+                        pagesObj.addPage(
+                            Page(
+                                description = it,
+                                title = pageTitle,
+                                footer = PAGE_FOOTER,
+                                footerIcon = PAGE_FOOTER_ICON
+                            )
+                        )
+                    }
+
                     val paginator = Paginator(
                         bot,
-                        message.channel,
-                        "Mappings info: MCP",
-                        pages,
-                        message.author,
+                        targetMessage = message,
+                        pages = pagesObj,
+                        owner = message.author,
                         keepEmbed = true
                     )
 
@@ -435,12 +454,25 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                                 "For a full list of supported Mojang versions, please view the rest of the pages."
                     )
 
+                    val pagesObj = Pages()
+                    val pageTitle = "Mappings info: Mojang"
+
+                    pages.forEach {
+                        pagesObj.addPage(
+                            Page(
+                                description = it,
+                                title = pageTitle,
+                                footer = PAGE_FOOTER,
+                                footerIcon = PAGE_FOOTER_ICON
+                            )
+                        )
+                    }
+
                     val paginator = Paginator(
                         bot,
-                        message.channel,
-                        "Mappings info: Mojang",
-                        pages,
-                        message.author,
+                        targetMessage = message,
+                        pages = pagesObj,
+                        owner = message.author,
                         keepEmbed = true
                     )
 
@@ -495,12 +527,25 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
                                 "For a full list of supported Yarn versions, please view the rest of the pages."
                     )
 
+                    val pagesObj = Pages()
+                    val pageTitle = "Mappings info: Yarn"
+
+                    pages.forEach {
+                        pagesObj.addPage(
+                            Page(
+                                description = it,
+                                title = pageTitle,
+                                footer = PAGE_FOOTER,
+                                footerIcon = PAGE_FOOTER_ICON
+                            )
+                        )
+                    }
+
                     val paginator = Paginator(
                         bot,
-                        message.channel,
-                        "Mappings info: Yarn",
-                        pages,
-                        message.author,
+                        targetMessage = message,
+                        pages = pagesObj,
+                        owner = message.author,
                         keepEmbed = true
                     )
 
@@ -539,7 +584,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
         )
 
         val query = givenQuery.replace(".", "/")
-        var pages: List<String>
+        var pages: List<Pair<String, String>>
 
         message.channel.withTyping {
             @Suppress("TooGenericExceptionCaught")
@@ -565,12 +610,50 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
         val meta = provider.get()
 
+        val pagesObj = Pages("${EXPAND_EMOJI.mention} for more")
+        val pageTitle = "List of ${meta.name} classes: ${meta.version}"
+
+        val shortPages = mutableListOf<String>()
+        val longPages = mutableListOf<String>()
+
+        pages.forEach { (short, long) ->
+            shortPages.add(short)
+            longPages.add(long)
+        }
+
+        shortPages.forEach {
+            pagesObj.addPage(
+                "${EXPAND_EMOJI.mention} for more",
+
+                Page(
+                    description = it,
+                    title = pageTitle,
+                    footer = PAGE_FOOTER,
+                    footerIcon = PAGE_FOOTER_ICON
+                )
+            )
+        }
+
+        if (shortPages != longPages) {
+            longPages.forEach {
+                pagesObj.addPage(
+                    "${EXPAND_EMOJI.mention} for less",
+
+                    Page(
+                        description = it,
+                        title = pageTitle,
+                        footer = PAGE_FOOTER,
+                        footerIcon = PAGE_FOOTER_ICON
+                    )
+                )
+            }
+        }
+
         val paginator = Paginator(
             bot,
-            message.channel,
-            "List of ${meta.name} classes: ${meta.version}",
-            pages,
-            message.author,
+            targetMessage = message,
+            pages = pagesObj,
+            owner = message.author,
             keepEmbed = true
         )
 
@@ -602,7 +685,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
         )
 
         val query = givenQuery.replace(".", "/")
-        var pages: List<String>
+        var pages: List<Pair<String, String>>
 
         message.channel.withTyping {
             @Suppress("TooGenericExceptionCaught")
@@ -628,12 +711,50 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
         val meta = provider.get()
 
+        val pagesObj = Pages("${EXPAND_EMOJI.mention} for more")
+        val pageTitle = "List of ${meta.name} fields: ${meta.version}"
+
+        val shortPages = mutableListOf<String>()
+        val longPages = mutableListOf<String>()
+
+        pages.forEach { (short, long) ->
+            shortPages.add(short)
+            longPages.add(long)
+        }
+
+        shortPages.forEach {
+            pagesObj.addPage(
+                "${EXPAND_EMOJI.mention} for more",
+
+                Page(
+                    description = it,
+                    title = pageTitle,
+                    footer = PAGE_FOOTER,
+                    footerIcon = PAGE_FOOTER_ICON
+                )
+            )
+        }
+
+        if (shortPages != longPages) {
+            longPages.forEach {
+                pagesObj.addPage(
+                    "${EXPAND_EMOJI.mention} for less",
+
+                    Page(
+                        description = it,
+                        title = pageTitle,
+                        footer = PAGE_FOOTER,
+                        footerIcon = PAGE_FOOTER_ICON
+                    )
+                )
+            }
+        }
+
         val paginator = Paginator(
             bot,
-            message.channel,
-            "List of ${meta.name} fields: ${meta.version}",
-            pages,
-            message.author,
+            targetMessage = message,
+            pages = pagesObj,
+            owner = message.author,
             keepEmbed = true
         )
 
@@ -665,7 +786,7 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
         )
 
         val query = givenQuery.replace(".", "/")
-        var pages: List<String>
+        var pages: List<Pair<String, String>>
 
         message.channel.withTyping {
             @Suppress("TooGenericExceptionCaught")
@@ -691,12 +812,50 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
 
         val meta = provider.get()
 
+        val pagesObj = Pages("${EXPAND_EMOJI.mention} for more")
+        val pageTitle = "List of ${meta.name} methods: ${meta.version}"
+
+        val shortPages = mutableListOf<String>()
+        val longPages = mutableListOf<String>()
+
+        pages.forEach { (short, long) ->
+            shortPages.add(short)
+            longPages.add(long)
+        }
+
+        shortPages.forEach {
+            pagesObj.addPage(
+                "${EXPAND_EMOJI.mention} for more",
+
+                Page(
+                    description = it,
+                    title = pageTitle,
+                    footer = PAGE_FOOTER,
+                    footerIcon = PAGE_FOOTER_ICON
+                )
+            )
+        }
+
+        if (shortPages != longPages) {
+            longPages.forEach {
+                pagesObj.addPage(
+                    "${EXPAND_EMOJI.mention} for less",
+
+                    Page(
+                        description = it,
+                        title = pageTitle,
+                        footer = PAGE_FOOTER,
+                        footerIcon = PAGE_FOOTER_ICON
+                    )
+                )
+            }
+        }
+
         val paginator = Paginator(
             bot,
-            message.channel,
-            "List of ${meta.name} methods: ${meta.version}",
-            pages,
-            message.author,
+            targetMessage = message,
+            pages = pagesObj,
+            owner = message.author,
             keepEmbed = true
         )
 

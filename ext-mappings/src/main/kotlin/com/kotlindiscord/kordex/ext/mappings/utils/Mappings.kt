@@ -15,12 +15,25 @@ private const val PAGE_SIZE = 3
 fun classesToPages(
     namespace: Namespace,
     queryResult: QueryResult<MappingsContainer, ClassResultSequence>
-): List<String> {
-    val pages = mutableListOf<String>()
+): List<Pair<String, String>> {
+    val pages = mutableListOf<Pair<String, String>>()
     val classes = queryResult.map { it.map { inner -> inner.value }.toList() }.value
 
     classes.chunked(PAGE_SIZE).forEach { result ->
-        val page = result.joinToString("\n\n") { clazz ->
+        val shortPage = result.joinToString("\n\n") { clazz ->
+            var text = ""
+
+            text += "**Class:** `${clazz.optimumName}`\n"
+
+            text += "**Name:** `" +
+                    clazz.obfName.buildString("` -> ") +
+                    "`${clazz.intermediaryName}`" +
+                    (clazz.mappedName.mapIfNotNullOrNotEquals(clazz.intermediaryName) { name -> " -> `$name`" } ?: "")
+
+            text.trimEnd('\n')
+        }
+
+        val longPage = result.joinToString("\n\n") { clazz ->
             var text = ""
 
             text += "**Class:** `${clazz.optimumName}`\n"
@@ -37,13 +50,14 @@ fun classesToPages(
                         clazz.intermediaryName.replace('/', '.') +
                         "`"
             } else if (namespace.supportsAW()) {
-                text += "**Access Widener:** `accessible class ${clazz.optimumName}`"
+                text += "\n" +
+                        "**Access Widener:** `accessible class ${clazz.optimumName}`"
             }
 
-            text
+            text.trimEnd('\n')
         }
 
-        pages.add(page)
+        pages.add(Pair(shortPage, longPage))
     }
 
     return pages
@@ -54,12 +68,35 @@ fun fieldsToPages(
     namespace: Namespace,
     mappings: MappingsContainer,
     queryResult: QueryResult<MappingsContainer, FieldResultSequence>
-): List<String> {
-    val pages = mutableListOf<String>()
+): List<Pair<String, String>> {
+    val pages = mutableListOf<Pair<String, String>>()
     val fields = queryResult.map { it.map { inner -> inner.value }.toList() }.value
 
     fields.chunked(PAGE_SIZE).forEach { result ->
-        val page = result.joinToString("\n\n") {
+        val shortPage = result.joinToString("\n\n") {
+            val (clazz, field) = it
+            var text = ""
+
+            text += "**Field:** `${clazz.optimumName}::${field.optimumName}`\n"
+
+            text += "**Name:** `" +
+                    field.obfName.buildString("` -> ") +
+                    "`${field.intermediaryName}`" +
+                    (field.mappedName.mapIfNotNullOrNotEquals(field.intermediaryName) { name -> " -> `$name`" } ?: "")
+
+            if (namespace.supportsFieldDescription()) {
+                text += "\n"
+
+                text += "**Type:** `" +
+                        (field.mappedDesc ?: field.intermediaryDesc.mapFieldIntermediaryDescToNamed(mappings))
+                            .localiseFieldDesc() +
+                        "`"
+            }
+
+            text
+        }
+
+        val longPage = result.joinToString("\n\n") {
             val (clazz, field) = it
             var text = ""
 
@@ -104,10 +141,10 @@ fun fieldsToPages(
                         "`"
             }
 
-            text
+            text.trimEnd('\n')
         }
 
-        pages.add(page)
+        pages.add(Pair(shortPage, longPage))
     }
 
     return pages
@@ -118,12 +155,26 @@ fun methodsToPages(
     namespace: Namespace,
     mappings: MappingsContainer,
     queryResult: QueryResult<MappingsContainer, MethodResultSequence>
-): List<String> {
-    val pages = mutableListOf<String>()
+): List<Pair<String, String>> {
+    val pages = mutableListOf<Pair<String, String>>()
     val methods = queryResult.map { it.map { inner -> inner.value }.toList() }.value
 
     methods.chunked(PAGE_SIZE).forEach { result ->
-        val page = result.joinToString("\n\n") {
+        val shortPage = result.joinToString("\n\n") {
+            val (clazz, method) = it
+            var text = ""
+
+            text += "**Method:** `${clazz.optimumName}::${method.optimumName}`\n"
+
+            text += "**Name:** `" +
+                    method.obfName.buildString("` -> ") +
+                    "`" + method.intermediaryName + "`" +
+                    (method.mappedName.mapIfNotNullOrNotEquals(method.intermediaryName) { name -> " -> `$name`" } ?: "")
+
+            text.trimEnd('\n')
+        }
+
+        val longPage = result.joinToString("\n\n") {
             val (clazz, method) = it
             var text = ""
 
@@ -161,10 +212,10 @@ fun methodsToPages(
                         "`"
             }
 
-            text
+            text.trimEnd('\n')
         }
 
-        pages.add(page)
+        pages.add(Pair(shortPage, longPage))
     }
 
     return pages

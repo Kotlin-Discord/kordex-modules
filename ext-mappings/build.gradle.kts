@@ -1,5 +1,5 @@
 group = "${rootProject.group}.ext.mappings"
-version = "1.0.0-SNAPSHOT"
+version = "1.0.0-RC2"
 
 dependencies {
     api("me.shedaniel:linkie-core:1.0.43")
