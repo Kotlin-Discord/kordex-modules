@@ -1,16 +1,20 @@
 package com.kotlindiscord.kordex.ext.mappings.utils
 
-import com.kotlindiscord.kordex.ext.mappings.utils.linkie.*
+import com.kotlindiscord.kordex.ext.mappings.utils.linkie.buildString
+import com.kotlindiscord.kordex.ext.mappings.utils.linkie.mapIfNotNullOrNotEquals
 import me.shedaniel.linkie.MappingsContainer
 import me.shedaniel.linkie.Namespace
-import me.shedaniel.linkie.utils.mapFieldIntermediaryDescToNamed
+import me.shedaniel.linkie.optimumName
+import me.shedaniel.linkie.utils.*
+import me.shedaniel.linkie.utils.MappingsQuery.localiseFieldDesc
+import me.shedaniel.linkie.utils.MappingsQuery.mapObfDescToNamed
 
 private const val PAGE_SIZE = 3
 
 /** Given a set of result classes, format them into a list of pages for the paginator. **/
 fun classesToPages(
     namespace: Namespace,
-    queryResult: QueryResultCompound<ClassResultSequence>
+    queryResult: QueryResult<MappingsContainer, ClassResultSequence>
 ): List<String> {
     val pages = mutableListOf<String>()
     val classes = queryResult.map { it.map { inner -> inner.value }.toList() }.value
@@ -49,7 +53,7 @@ fun classesToPages(
 fun fieldsToPages(
     namespace: Namespace,
     mappings: MappingsContainer,
-    queryResult: QueryResultCompound<FieldResultSequence>
+    queryResult: QueryResult<MappingsContainer, FieldResultSequence>
 ): List<String> {
     val pages = mutableListOf<String>()
     val fields = queryResult.map { it.map { inner -> inner.value }.toList() }.value
@@ -113,7 +117,7 @@ fun fieldsToPages(
 fun methodsToPages(
     namespace: Namespace,
     mappings: MappingsContainer,
-    queryResult: QueryResultCompound<MethodResultSequence>
+    queryResult: QueryResult<MappingsContainer, MethodResultSequence>
 ): List<String> {
     val pages = mutableListOf<String>()
     val methods = queryResult.map { it.map { inner -> inner.value }.toList() }.value

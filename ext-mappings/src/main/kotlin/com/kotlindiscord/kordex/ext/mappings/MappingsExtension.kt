@@ -15,7 +15,6 @@ import com.kotlindiscord.kordex.ext.mappings.enums.YarnChannels
 import com.kotlindiscord.kordex.ext.mappings.exceptions.UnsupportedNamespaceException
 import com.kotlindiscord.kordex.ext.mappings.utils.classesToPages
 import com.kotlindiscord.kordex.ext.mappings.utils.fieldsToPages
-import com.kotlindiscord.kordex.ext.mappings.utils.linkie.*
 import com.kotlindiscord.kordex.ext.mappings.utils.methodsToPages
 import dev.kord.core.behavior.channel.withTyping
 import dev.kord.core.event.message.MessageCreateEvent
@@ -24,6 +23,8 @@ import me.shedaniel.linkie.MappingsProvider
 import me.shedaniel.linkie.Namespace
 import me.shedaniel.linkie.Namespaces
 import me.shedaniel.linkie.namespaces.*
+import me.shedaniel.linkie.utils.MappingsQuery
+import me.shedaniel.linkie.utils.QueryContext
 import mu.KotlinLogging
 
 private const val VERSION_CHUNK_SIZE = 10
@@ -557,6 +558,11 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
             pages = classesToPages(namespace, result)
         }
 
+        if (pages.isEmpty()) {
+            message.respond("No results found")
+            return
+        }
+
         val meta = provider.get()
 
         val paginator = Paginator(
@@ -615,6 +621,11 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
             pages = fieldsToPages(namespace, provider.get(), result)
         }
 
+        if (pages.isEmpty()) {
+            message.respond("No results found")
+            return
+        }
+
         val meta = provider.get()
 
         val paginator = Paginator(
@@ -671,6 +682,11 @@ class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
             }
 
             pages = methodsToPages(namespace, provider.get(), result)
+        }
+
+        if (pages.isEmpty()) {
+            message.respond("No results found")
+            return
         }
 
         val meta = provider.get()

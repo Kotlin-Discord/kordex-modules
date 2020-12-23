@@ -14,76 +14,21 @@
  * limitations under the License.
  */
 
-// These are Linkie classes and functions, they came like this.
-@file:Suppress(
-    "CollapsibleIfStatements",
-    "DataClassShouldBeImmutable",
-    "ExpressionBodySyntax",
-    "MagicNumber",
-    "MandatoryBracesIfStatements",
-    "MaxLineLength",
-    "MultiLineIfElse",
-    "OptionalWhenBraces",
-    "UndocumentedPublicClass",
-    "UndocumentedPublicFunction",
-    "UndocumentedPublicProperty",
-    "UnnecessaryParentheses",
-    "UnusedPrivateMember",
-    "UseIfInsteadOfWhen",
-)
-
 package com.kotlindiscord.kordex.ext.mappings.utils.linkie
 
-import me.shedaniel.linkie.*
-import me.shedaniel.linkie.utils.remapMethodDescriptor
+import me.shedaniel.linkie.MappingsContainer
+import me.shedaniel.linkie.MappingsProvider
+import me.shedaniel.linkie.Obf
 
-infix fun <T> T.hold(score: Double): ResultHolder<T> = ResultHolder(this, score)
-
-fun MappingsContainer.toMetadata(): MappingsMetadata = MappingsMetadata(
-    version = version,
-    name = name,
-    mappingSource = mappingSource,
-    namespace = namespace ?: ""
-)
-
-fun <T> QueryResultCompound<T>.decompound(): QueryResult<T> = QueryResult(mappings.toMetadata(), value)
-
-inline fun <T, V> QueryResultCompound<T>.map(transformer: (T) -> V): QueryResultCompound<V> {
-    return QueryResultCompound(mappings, transformer(value))
-}
-
-inline fun <T, V> QueryResult<T>.map(transformer: (T) -> V): QueryResult<V> {
-    return QueryResult(mappings, transformer(value))
-}
-
+/** Retrieve the mappings container for this mappings provider. **/
 fun MappingsProvider.get(): MappingsContainer = mappingsContainer!!.invoke()
 
-fun String.isValidIdentifier(): Boolean {
-    forEachIndexed { index, c ->
-        if (index == 0) {
-            if (!Character.isJavaIdentifierStart(c))
-                return false
-        } else {
-            if (!Character.isJavaIdentifierPart(c))
-                return false
-        }
-    }
-    return isNotEmpty()
-}
-
-val Class.optimumName: String
-    get() = mappedName ?: intermediaryName
-
-val Field.optimumName: String
-    get() = mappedName ?: intermediaryName
-
-val Method.optimumName: String
-    get() = mappedName ?: intermediaryName
-
+/** Format this obfuscated member as a string, optionally with a provided suffix. **/
 fun Obf.buildString(nonEmptySuffix: String? = null): String =
     when {
         isEmpty() -> ""
         isMerged() -> merged!! + (nonEmptySuffix ?: "")
+
         else -> buildString {
             if (client != null) append("client=**$client**")
             if (server != null) append("server=**$server**")
@@ -91,50 +36,12 @@ fun Obf.buildString(nonEmptySuffix: String? = null): String =
         }
     }
 
+/**
+ *  If not null or equal to the given string, return the string with the given mapping lambda applied, otherwise null.
+ */
 inline fun String?.mapIfNotNullOrNotEquals(other: String, mapper: (String) -> String): String? =
     when {
         isNullOrEmpty() -> null
         this == other -> null
         else -> mapper(this)
-    }
-
-fun String.mapObfDescToNamed(container: MappingsContainer): String =
-    remapMethodDescriptor { container.getClassByObfName(it)?.intermediaryName ?: it }
-
-fun String.localiseFieldDesc(): String {
-    if (isEmpty()) return this
-    if (length == 1) {
-        return localisePrimitive(first())
-    }
-    val s = this
-    var offset = 0
-    for (i in s.indices) {
-        if (s[i] == '[')
-            offset++
-        else break
-    }
-    if (offset + 1 == length) {
-        val primitive = StringBuilder(localisePrimitive(first()))
-        for (i in 1..offset) primitive.append("[]")
-        return primitive.toString()
-    }
-    if (s[offset + 1] == 'L') {
-        val substring = StringBuilder(substring(offset + 1))
-        for (i in 1..offset) substring.append("[]")
-        return substring.toString()
-    }
-    return s
-}
-
-fun localisePrimitive(char: Char): String =
-    when (char) {
-        'Z' -> "boolean"
-        'C' -> "char"
-        'B' -> "byte"
-        'S' -> "short"
-        'I' -> "int"
-        'F' -> "float"
-        'J' -> "long"
-        'D' -> "double"
-        else -> char.toString()
     }
