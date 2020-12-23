@@ -16,12 +16,7 @@
 
 package com.kotlindiscord.kordex.ext.mappings.utils.linkie
 
-import me.shedaniel.linkie.MappingsContainer
-import me.shedaniel.linkie.MappingsProvider
 import me.shedaniel.linkie.Obf
-
-/** Retrieve the mappings container for this mappings provider. **/
-fun MappingsProvider.get(): MappingsContainer = mappingsContainer!!.invoke()
 
 /** Format this obfuscated member as a string, optionally with a provided suffix. **/
 fun Obf.buildString(nonEmptySuffix: String? = null): String =
