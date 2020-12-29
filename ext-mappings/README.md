@@ -21,8 +21,7 @@ val bot = ExtensibleBot(
 )
 
 suspend fun main() {
-    bot.addExtension(MappingsExtension::class)
-
+    bot.extMappings()
     bot.start()
 }
 ```
@@ -86,26 +85,42 @@ bot's needs.
 Kord Extensions provides a system of checks that can be applied to commands and other event handlers. Checks essentially
 allow you to prevent execution of a command depending on the context it was executed within.
 
-This extension allows you to register custom checks by calling the `MappingsExtension.addCheck()` function, as follows:
+This extension allows you to register custom checks by calling the `ExtensibleBot#extMappingsCheck()` function,
+as follows:
 
 ```kotlin
-MappingsExtension.addCheck { command ->
-    { event ->
-        if (command == "yarn") {  // Only limit usage of the `yarn` command
-            event.message.author?.id?.value != 109040264529608704L  // We don't want gdude using this
-        } else {
-            true
+val bot = ExtensibleBot(
+    token = System.getenv("TOKEN"),
+    prefix = "!"
+)
+
+suspend fun main() {
+    bot.extMappingsCheck { command ->
+        { event ->
+            if (command == "yarn") {  // Only limit usage of the `yarn` command
+                event.message.author?.id?.value != 109040264529608704L  // We don't want gdude using this
+            } else {
+                true
+            }
         }
     }
+
+    bot.extMappings()
+    bot.start()
 }
 ```
 
 You can also write this using functions instead of lambdas, of course.
 
 ```kotlin
+val bot = ExtensibleBot(
+    token = System.getenv("TOKEN"),
+    prefix = "!"
+)
+
 suspend fun mappingsCheck(command: String): suspend (MessageCreateEvent) -> Boolean {
     suspend fun inner(event: MessageCreateEvent): Boolean =
-        if (command == "yarn") {  // Only limit usage of the `yarn` command
+        if (command.startsWith("y")) {  // Only limit usage of the `yarn` commands
             event.message.author?.id?.value != 109040264529608704L  // We don't want gdude using this
         } else {
             true
@@ -114,7 +129,12 @@ suspend fun mappingsCheck(command: String): suspend (MessageCreateEvent) -> Bool
     return ::inner
 }
 
-MappingsExtension.addCheck(::mappingsCheck)
+suspend fun main() {
+    bot.extMappingsCheck(::mappingsCheck)
+
+    bot.extMappings()
+    bot.start()
+}
 ```
 
 The approach you take is up to you!
@@ -122,12 +142,26 @@ The approach you take is up to you!
 ## Replacing the Config Adapter
 
 If you need some other form of configuration - for example, from a database - you can implement the
-`MappingsConfigAdapater` interface in your own classes and pass an instance to `MappingsExtension.configure()` before
-you start the bot to use it. While going into detail on each function is a little out of scope for this document, you
-can find more information in the following places:
+`MappingsConfigAdapater` interface in your own classes and pass an instance to `ExtensibleBot.extMappingsConfig()`
+before you start the bot to use it. While going into detail on each function is a little out of scope for this 
+document, you can find more information in the following places:
 
 * [MappingsConfigAdapter interface](src/main/kotlin/com/kotlindiscord/kordex/ext/mappings/configuration/MappingsConfigAdapter.kt)
 * [TomlMappingsConfig class](src/main/kotlin/com/kotlindiscord/kordex/ext/mappings/configuration/TomlMappingsConfig.kt)
+
+```kotlin
+val bot = ExtensibleBot(
+    token = System.getenv("TOKEN"),
+    prefix = "!"
+)
+
+suspend fun main() {
+    bot.extMappingsConfig(CustomMappingsConfig())
+
+    bot.extMappings()
+    bot.start()
+}
+```
 
 # Licensing & Attribution
 

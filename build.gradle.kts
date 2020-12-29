@@ -78,7 +78,7 @@ allprojects {
         api("com.uchuhimo:konf:0.23.0")
         api("com.uchuhimo:konf-toml:0.23.0")
 
-        implementation("com.kotlindiscord.kord.extensions:kord-extensions:1.4.0-RC4")
+        implementation("com.kotlindiscord.kord.extensions:kord-extensions:1.4.0-RC5")
         implementation("io.github.microutils:kotlin-logging:2.0.3")
 
         implementation("org.jetbrains.kotlin:kotlin-reflect")
