@@ -2,7 +2,7 @@ package com.kotlindiscord.kordex.ext.mappings
 
 import com.kotlindiscord.kord.extensions.ExtensibleBot
 import com.kotlindiscord.kord.extensions.commands.CommandContext
-import com.kotlindiscord.kord.extensions.extensions.Extension
+import com.kotlindiscord.kord.extensions.extensions.KoinExtension
 import com.kotlindiscord.kord.extensions.pagination.EXPAND_EMOJI
 import com.kotlindiscord.kord.extensions.pagination.Paginator
 import com.kotlindiscord.kord.extensions.pagination.pages.Page
@@ -12,7 +12,6 @@ import com.kotlindiscord.kordex.ext.mappings.arguments.MCPArguments
 import com.kotlindiscord.kordex.ext.mappings.arguments.MojangArguments
 import com.kotlindiscord.kordex.ext.mappings.arguments.YarnArguments
 import com.kotlindiscord.kordex.ext.mappings.configuration.MappingsConfigAdapter
-import com.kotlindiscord.kordex.ext.mappings.configuration.TomlMappingsConfig
 import com.kotlindiscord.kordex.ext.mappings.enums.Channels
 import com.kotlindiscord.kordex.ext.mappings.enums.YarnChannels
 import com.kotlindiscord.kordex.ext.mappings.exceptions.UnsupportedNamespaceException
@@ -29,6 +28,7 @@ import me.shedaniel.linkie.namespaces.*
 import me.shedaniel.linkie.utils.MappingsQuery
 import me.shedaniel.linkie.utils.QueryContext
 import mu.KotlinLogging
+import org.koin.core.component.inject
 
 private const val VERSION_CHUNK_SIZE = 10
 private const val PAGE_FOOTER = "Powered by Linkie"
@@ -38,37 +38,21 @@ private const val PAGE_FOOTER_ICON =
 /**
  * Extension providing Minecraft mappings lookups on Discord.
  */
-class MappingsExtension(bot: ExtensibleBot) : Extension(bot) {
-    companion object {
-        /** Mappings configuration object. **/
-        private var config: MappingsConfigAdapter = TomlMappingsConfig()
+class MappingsExtension(bot: ExtensibleBot) : KoinExtension(bot) {
+    private val config: MappingsConfigAdapter by inject()
 
+    companion object {
         /** Checks to apply to each command. **/
         private var checks: MutableList<suspend (String) -> (suspend (MessageCreateEvent) -> Boolean)> = mutableListOf()
 
         /**
-         * Call this before your bot starts to change the configuration adapter used by this extension.
-         */
-        fun configure(configObject: MappingsConfigAdapter) {
-            config = configObject
-        }
-
-        /**
-         * Call this before your bot starts to add a check that will be run against every command.
-         *
-         * The function/lambda passed should take a [String] - the name of the command being checked - and return
-         * a function taking a [MessageCreateEvent] and returning a [Boolean]. The returned function should return
-         * `true` if the command should execute, and `false` if it shouldn't, using the command name and event as
-         * context.
-         *
-         * Note that all custom checks will be run **BEFORE** checks that are specified in the configuration.
+         * Internal function used to add a check to this extension.
          */
         fun addCheck(check: suspend (String) -> (suspend (MessageCreateEvent) -> Boolean)) =
             checks.add(check)
     }
 
     private val logger = KotlinLogging.logger { }
-
     override val name: String = "mappings"
 
     override suspend fun setup() {

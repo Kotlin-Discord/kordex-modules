@@ -1,5 +1,6 @@
 import com.kotlindiscord.kord.extensions.ExtensibleBot
 import com.kotlindiscord.kordex.ext.mappings.MappingsExtension
+import com.kotlindiscord.kordex.ext.mappings.extMappings
 
 val bot = ExtensibleBot(
     token = System.getenv("TOKEN"),
@@ -8,7 +9,6 @@ val bot = ExtensibleBot(
 )
 
 suspend fun main() {
-    bot.addExtension(MappingsExtension::class)
-
+    bot.extMappings()
     bot.start()
 }
