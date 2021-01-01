@@ -1,3 +1,7 @@
+# This repository has been archived!
+
+If you're looking for KordEx modules then please head over to the new [Kord-Extensions GitHub org](https://github.com/Kord-Extensions/), where each module now has its own repository! Additionally, this module may be found in [its own ext-mappings repository](https://github.com/Kord-Extensions/ext-mappings).
+
 # Mappings Extension
 
 [![Discord: Click here](https://img.shields.io/static/v1?label=Discord&message=Click%20here&color=7289DA&style=for-the-badge&logo=discord)](https://discord.gg/gjXqqCS) [![Release](https://img.shields.io/nexus/r/com.kotlindiscord.kordex.ext.mappings/ext-mappings?nexusVersion=3&logo=gradle&color=blue&label=Release&server=https%3A%2F%2Fmaven.kotlindiscord.com&style=for-the-badge)](https://maven.kotlindiscord.com/#browse/browse:maven-releases:com%2Fkotlindiscord%2Fkordex%2Fext%2Fmappings%2Fext-mappings) [![Snapshot](https://img.shields.io/nexus/s/com.kotlindiscord.kordex.ext.mappings/ext-mappings?logo=gradle&color=orange&label=Snapshot&server=https%3A%2F%2Fmaven.kotlindiscord.com&style=for-the-badge)](https://maven.kotlindiscord.com/#browse/browse:maven-snapshots:com%2Fkotlindiscord%2Fkordex%2Fext%2Fmappings%2Fext-mappings)

@@ -1,3 +1,7 @@
+# This repository has been archived!
+
+If you're looking for KordEx modules then please head over to the new [Kord-Extensions GitHub org](https://github.com/Kord-Extensions/), where each module now has its own repository!
+
 # KordEx Modules
 
 [![Discord: Click here](https://img.shields.io/static/v1?label=Discord&message=Click%20here&color=7289DA&style=for-the-badge&logo=discord)](https://discord.gg/gjXqqCS) [![Build Status](https://img.shields.io/github/workflow/status/Kotlin-Discord/kordex-modules/CI%20(Root)/root?logo=github&style=for-the-badge)](https://github.com/Kotlin-Discord/kordex-modules/actions?query=workflow%3ACI+branch%3Aroot)
